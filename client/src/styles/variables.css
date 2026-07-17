@@ -1,0 +1,16 @@
+:root {
+
+    --bg: #FAFAF8;
+    --surface: #FFFFFF;
+
+    --text: #111111;
+    --text-secondary: #6B7280;
+
+    --border: #EAEAEA;
+
+    --font-heading: "Instrument Serif", serif;
+    --font-body: "Inter", sans-serif;
+
+    --container: 1280px;
+
+}

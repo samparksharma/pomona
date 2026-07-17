@@ -1,0 +1,154 @@
+.navbar {
+    width: 100%;
+    height: 90px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 0 80px;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    z-index: 100;
+
+    background: transparent;
+}
+
+/* ---------------- Logo ---------------- */
+
+.navbar__logo img {
+    height: 200px;
+    width: auto;
+    display: block;
+}
+
+/* ---------------- Center Links ---------------- */
+
+.navbar__links {
+    display: flex;
+    align-items: center;
+    gap: 48px;
+}
+
+.navbar__links a {
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 400;
+    text-decoration: none;
+
+    transition:
+        opacity .3s ease,
+        transform .3s ease;
+}
+
+.navbar__links a:hover {
+    opacity: .75;
+    transform: translateY(-1px);
+}
+
+/* ---------------- Right Buttons ---------------- */
+
+.navbar__auth {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+/* Login */
+
+.login-btn {
+
+    color: #ffffff;
+    text-decoration: none;
+
+    padding: 12px 22px;
+
+    border-radius: 999px;
+
+    background: transparent;
+
+    transition:
+        background .35s ease,
+        color .35s ease,
+        transform .35s ease,
+        box-shadow .35s ease;
+}
+
+.login-btn:hover {
+
+    background: #ffffff;
+    color: #111111;
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 8px 22px rgba(255, 255, 255, .18);
+}
+
+/* Sign Up */
+
+.signup-btn {
+
+    background: #ffffff;
+    color: #111111;
+
+    padding: 12px 22px;
+
+    border-radius: 999px;
+
+    text-decoration: none;
+
+    transition:
+        transform .35s ease,
+        box-shadow .35s ease;
+}
+
+.signup-btn:hover {
+
+    transform: translateY(-2px) scale(1.02);
+
+    box-shadow:
+        0 0 20px rgba(250, 250, 248, .45),
+        0 10px 28px rgba(250, 250, 248, .20);
+}
+
+.login-btn,
+.signup-btn {
+
+    min-width: 110px;
+    text-align: center;
+}
+
+/* ===========================
+   LIGHT NAVBAR
+=========================== */
+
+.navbar {
+    transition: all .35s ease;
+}
+
+.navbar-light .navbar__links a {
+    color: #111111;
+}
+
+.navbar-light .login-btn {
+    color: #111111;
+}
+
+.navbar-light .login-btn:hover {
+    background: #111111;
+    color: #FAFAF8;
+}
+
+.navbar-light .signup-btn {
+    background: #111111;
+    color: #FAFAF8;
+}
+
+.navbar-light .signup-btn:hover {
+    box-shadow:
+        0 12px 30px rgba(0, 0, 0, .18);
+}
