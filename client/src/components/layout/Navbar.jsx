@@ -2,10 +2,13 @@ import "./Navbar.css";
 import logoLight from "../../assets/images/logo.svg";
 import logoDark from "../../assets/images/logo-dark.svg";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import FruitSearch from "../fruit/FruitSearch";
 import { motion } from "framer-motion";
 
-function Navbar({ light = false }) {
-    
+function Navbar({  light = false,
+  showBack = false,showSearch = false,}) {
+     const navigate = useNavigate();
   return (
     <motion.nav
   className={`navbar ${light ? "navbar-light" : ""}`}
@@ -27,7 +30,16 @@ function Navbar({ light = false }) {
 >
       {/* Left */}
       <div className="navbar__logo">
-        
+        {showBack && (
+   <button
+  className="navbar-back"
+  onClick={() =>
+    navigate("/discover")
+  }
+>
+  ←
+</button>
+  )}
         <Link to="/">
         <img
   src={light ? logoDark : logoLight}
@@ -37,6 +49,7 @@ function Navbar({ light = false }) {
       </div>
 
 {/* Center */}
+{showSearch && <FruitSearch />}
 <div className="navbar__links">
         <Link to="/">Home</Link>
         <Link to="/discover">Discover</Link>

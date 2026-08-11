@@ -1,8 +1,7 @@
 import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
 import FruitCard from "./FruitCard";
-import fruits from "../../data/fruits";
 
-export default function MasonryGrid() {
+export default function MasonryGrid({ fruits }) {
   return (
     <ResponsiveMasonry
       columnsCountBreakPoints={{
@@ -15,7 +14,7 @@ export default function MasonryGrid() {
       <Masonry gutter="24px">
         {fruits.map((fruit) => (
           <FruitCard
-            key={fruit.id}
+            key={fruit._id}
             fruit={fruit}
           />
         ))}

@@ -1,0 +1,49 @@
+.fruit-sidebar a {
+    display: block;
+    padding: 8px 0;
+    color: #666;
+    text-decoration: none;
+    transition: all 0.25s ease;
+}
+
+.fruit-sidebar a.active {
+    color: #111;
+    font-weight: 600;
+    border-left: 2px solid #111;
+    padding-left: 12px;
+}
+
+.fruit-sidebar {
+    position: sticky;
+    top: 0;
+
+    height: 100vh;
+
+    border-right: 1px solid #e5e5e5;
+
+    padding: 20px 24px;
+
+    overflow-y: auto;
+}
+
+.back-button {
+    border: none;
+    background: transparent;
+
+    font-size: 20px;
+    font-weight: 500;
+
+    cursor: pointer;
+
+    margin-bottom: 40px;
+
+    padding: 0;
+
+    color: #111;
+
+    transition: opacity 0.2s ease;
+}
+
+.back-button:hover {
+    opacity: 0.6;
+}

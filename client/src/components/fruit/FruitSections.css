@@ -1,0 +1,24 @@
+.content-section {
+    margin-top: 120px;
+}
+
+.content-section:first-child {
+    margin-top: 80px;
+}
+
+
+.content-section h2 {
+    font-size: 42px;
+
+    font-family: "Instrument Serif";
+
+    margin-bottom: 24px;
+}
+
+.content-section p {
+    font-size: 20px;
+
+    line-height: 1.8;
+
+    max-width: 900px;
+}

@@ -1,3 +1,5 @@
+/* ---------------- Navbar ---------------- */
+
 .navbar {
     width: 100%;
     height: 90px;
@@ -6,7 +8,7 @@
     justify-content: space-between;
     align-items: center;
 
-    padding: 0 80px;
+    padding: 0 45px;
 
     position: absolute;
     top: 0;
@@ -15,14 +17,52 @@
     z-index: 100;
 
     background: transparent;
+
+    transition: all 0.35s ease;
 }
 
-/* ---------------- Logo ---------------- */
+/* ---------------- Logo Area ---------------- */
+
+.navbar__logo {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
 
 .navbar__logo img {
     height: 200px;
     width: auto;
     display: block;
+}
+
+/* ---------------- Back Button ---------------- */
+
+.navbar-back {
+    width: 42px;
+    height: 42px;
+
+    border-radius: 50%;
+
+    border: 1px solid #dcdcdc;
+
+    background: #fafaf8;
+
+    color: #111;
+
+    font-size: 18px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+    transition: all .25s ease;
+}
+
+.navbar-back:hover {
+    background: #111;
+    color: #fafaf8;
 }
 
 /* ---------------- Center Links ---------------- */
@@ -57,10 +97,7 @@
     gap: 18px;
 }
 
-/* Login */
-
 .login-btn {
-
     color: #ffffff;
     text-decoration: none;
 
@@ -78,7 +115,6 @@
 }
 
 .login-btn:hover {
-
     background: #ffffff;
     color: #111111;
 
@@ -88,10 +124,7 @@
         0 8px 22px rgba(255, 255, 255, .18);
 }
 
-/* Sign Up */
-
 .signup-btn {
-
     background: #ffffff;
     color: #111111;
 
@@ -107,7 +140,6 @@
 }
 
 .signup-btn:hover {
-
     transform: translateY(-2px) scale(1.02);
 
     box-shadow:
@@ -117,18 +149,11 @@
 
 .login-btn,
 .signup-btn {
-
     min-width: 110px;
     text-align: center;
 }
 
-/* ===========================
-   LIGHT NAVBAR
-=========================== */
-
-.navbar {
-    transition: all .35s ease;
-}
+/* ---------------- Light Navbar ---------------- */
 
 .navbar-light .navbar__links a {
     color: #111111;
