@@ -22,3 +22,47 @@
 
     max-width: 900px;
 }
+
+.sub-section {
+    margin-top: 45px;
+}
+
+.sub-section h3 {
+    font-size: 26px;
+    margin-bottom: 14px;
+}
+
+.content-section p {
+    font-size: 19px;
+    line-height: 1.8;
+    max-width: 950px;
+}
+
+.fact-list {
+    max-width: 950px;
+    padding-left: 25px;
+}
+
+.fact-list li {
+    margin-bottom: 18px;
+    font-size: 18px;
+    line-height: 1.7;
+}
+
+.fruit-gallery {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    max-width: 1000px;
+}
+
+.fruit-gallery img {
+    width: 100%;
+    height: 320px;
+    object-fit: cover;
+    border-radius: 18px;
+}
+
+.search-item.selected {
+    background: rgba(0, 0, 0, 0.06);
+}

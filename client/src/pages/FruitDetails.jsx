@@ -2,6 +2,7 @@ import Navbar from "../components/layout/Navbar";
 import FruitSidebar from "../components/fruit/FruitSidebar";
 import FruitSections from "../components/fruit/FruitSections";
 import FruitHero from "../components/fruit/FruitHero";
+import FruitLoading from "../components/fruit/FruitLoading";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
@@ -14,7 +15,7 @@ function FruitDetails() {
 
   useEffect(() => {
     fetchFruit();
-  }, []);
+  }, [id]);
 
   async function fetchFruit() {
     try {
@@ -29,7 +30,7 @@ function FruitDetails() {
   }
 
   if (!fruit) {
-    return <div>Loading...</div>;
+    return <FruitLoading />;
   }
 
   const image =

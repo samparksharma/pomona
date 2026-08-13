@@ -10,11 +10,31 @@ function FruitHero({ fruit, image }) {
       />
 
       <div className="hero-content">
-        <h1>{fruit.fruit.name}</h1>
+        <div className="hero-title">
+          <h1>{fruit.fruit.name}</h1>
 
-        <p className="latin-name">
-          {fruit.fruit.latinName}
-        </p>
+          {fruit.fruit.latinName && (
+            <p className="latin-name">
+              {fruit.fruit.latinName}
+            </p>
+          )}
+        </div>
+
+        {fruit.fruit.family && (
+          <div className="hero-taxonomy">
+            <p>
+              <span>Family</span>
+              {fruit.fruit.family}
+            </p>
+
+            {fruit.fruit.genus && (
+              <p>
+                <span>Genus</span>
+                {fruit.fruit.genus}
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );
