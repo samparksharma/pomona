@@ -10,7 +10,7 @@ const placeholders = [
   "Find your next favorite fruit...",
 ];
 
-function SearchBar() {
+function SearchBar({ value, onChange, onSubmit }) {
   const [placeholder, setPlaceholder] = useState("");
   const [index, setIndex] = useState(0);
   const [deleting, setDeleting] = useState(false);
@@ -23,7 +23,9 @@ function SearchBar() {
     if (!deleting) {
       if (placeholder.length < current.length) {
         timeout = setTimeout(() => {
-          setPlaceholder(current.slice(0, placeholder.length + 1));
+          setPlaceholder(
+            current.slice(0, placeholder.length + 1)
+          );
         }, 45);
       } else {
         timeout = setTimeout(() => {
@@ -33,16 +35,31 @@ function SearchBar() {
     } else {
       if (placeholder.length > 0) {
         timeout = setTimeout(() => {
-          setPlaceholder(current.slice(0, placeholder.length - 1));
+          setPlaceholder(
+            current.slice(0, placeholder.length - 1)
+          );
         }, 25);
       } else {
         setDeleting(false);
-        setIndex((prev) => (prev + 1) % placeholders.length);
+
+        setIndex(
+          (prev) => (prev + 1) % placeholders.length
+        );
       }
     }
 
     return () => clearTimeout(timeout);
   }, [placeholder, deleting, index]);
+
+  function handleKeyDown(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+
+      if (onSubmit) {
+        onSubmit();
+      }
+    }
+  }
 
   return (
     <div className="search-wrapper">
@@ -53,6 +70,11 @@ function SearchBar() {
           type="text"
           className="search-input"
           placeholder={placeholder}
+          value={value}
+          onChange={(e) =>
+            onChange(e.target.value)
+          }
+          onKeyDown={handleKeyDown}
         />
 
         <span className="cursor"></span>

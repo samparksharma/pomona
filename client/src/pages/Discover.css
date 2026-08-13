@@ -218,6 +218,35 @@
     }
 }
 
+.search-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 180px;
+
+    font-family: "Inter", sans-serif;
+
+    text-align: center;
+}
+
+.search-empty p {
+    margin: 0;
+
+    font-size: 18px;
+
+    color: #444;
+}
+
+.search-empty span {
+    margin-top: 8px;
+
+    font-size: 14px;
+
+    color: #888;
+}
+
 @media(max-width:600px){
 
     .discover-title{

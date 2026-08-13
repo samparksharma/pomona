@@ -3,12 +3,17 @@ import "./FruitCard.css";
 
 function FruitCard({ fruit }) {
   return (
-    <article className="fruit-card">
+    <Link
+      to={`/fruit/${fruit._id}`}
+      className="fruit-card"
+    >
       <div className="fruit-image">
         <img
           src={
             fruit.heroImage ||
-            "https://placehold.co/600x400?text="+fruit.name
+            `https://placehold.co/600x400?text=${encodeURIComponent(
+              fruit.name
+            )}`
           }
           alt={fruit.name}
           loading="lazy"
@@ -18,19 +23,18 @@ function FruitCard({ fruit }) {
       <div className="fruit-content">
         <h3>{fruit.name}</h3>
 
-        <p className="latin-name">
-          <em>{fruit.latinName}</em>
-        </p>
+        {fruit.latinName && (
+          <p className="latin-name">
+            <em>{fruit.latinName}</em>
+          </p>
+        )}
 
-        <Link
-          to={`/fruit/${fruit._id}`}
-          className="learn-more"
-        >
-          Explorare
+        <span className="learn-more">
+          Explore
           <span>→</span>
-        </Link>
+        </span>
       </div>
-    </article>
+    </Link>
   );
 }
 

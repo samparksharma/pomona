@@ -171,14 +171,32 @@ const searchFruits = async (req, res) => {
       return res.json([]);
     }
 
+    const query = q.trim();
+
     const fruits = await Fruit.find({
       name: {
-        $regex: q.trim(),
+        $regex: query,
         $options: "i",
       },
-    }).limit(8);
+    }).limit(20);
 
-    res.status(200).json(fruits);
+    // Prefix matches first, then partial matches
+    const lowerQuery = query.toLowerCase();
+
+    fruits.sort((a, b) => {
+      const aName = a.name.toLowerCase();
+      const bName = b.name.toLowerCase();
+
+      const aStarts = aName.startsWith(lowerQuery);
+      const bStarts = bName.startsWith(lowerQuery);
+
+      if (aStarts && !bStarts) return -1;
+      if (!aStarts && bStarts) return 1;
+
+      return aName.localeCompare(bName);
+    });
+
+    res.status(200).json(fruits.slice(0, 8));
   } catch (error) {
     console.log(error);
 
