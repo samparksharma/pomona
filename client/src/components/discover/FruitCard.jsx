@@ -1,10 +1,19 @@
-import { Link } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+} from "react-router-dom";
+
 import "./FruitCard.css";
 
 function FruitCard({ fruit }) {
+  const location = useLocation();
+
   return (
     <Link
       to={`/fruit/${fruit._id}`}
+      state={{
+        backgroundLocation: location,
+      }}
       className="fruit-card"
     >
       <div className="fruit-image">

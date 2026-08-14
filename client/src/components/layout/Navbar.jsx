@@ -154,7 +154,7 @@ function Navbar({
             <button
               className="navbar-back"
               onClick={() =>
-                navigate("/discover")
+                navigate(-1)
               }
             >
               ←
