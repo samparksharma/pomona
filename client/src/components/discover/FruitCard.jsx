@@ -24,7 +24,7 @@ function FruitCard({ fruit }) {
         <h3>{fruit.name}</h3>
 
         {fruit.latinName && (
-          <p className="latin-name">
+          <p className="fruit-card-latin-name">
             <em>{fruit.latinName}</em>
           </p>
         )}

@@ -62,13 +62,13 @@ function SearchBar({ value, onChange, onSubmit }) {
   }
 
   return (
-    <div className="search-wrapper">
-      <div className="search-box">
-        <FiSearch className="search-icon" />
+    <div className="discover-search-wrapper">
+      <div className="discover-search-box">
+        <FiSearch className="discover-search-icon" />
 
         <input
           type="text"
-          className="search-input"
+          className="discover-search-input"
           placeholder={placeholder}
           value={value}
           onChange={(e) =>

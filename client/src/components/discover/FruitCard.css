@@ -67,21 +67,30 @@
 
     font-family: "Instrument Serif", serif;
 
-    font-size: 26px;
+    font-size: 32px;
+
+    line-height: 1;
+
     font-weight: 400;
 
     color: #111;
 }
 
-.latin-name {
+.fruit-card-latin-name {
 
-    margin-top: 4px;
+    margin-top: 5px;
 
-    font-size: 14px;
+    font-family: "Inter", sans-serif;
+
+    font-size: 15px;
+
+    line-height: 1.35;
 
     color: #777;
 
     font-style: italic;
+
+    font-weight: 400;
 }
 
 .learn-more {

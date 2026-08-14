@@ -123,9 +123,21 @@ const fruitSchema = new mongoose.Schema(
     },
 
     harvest: {
-      type: String,
-      default: "",
-    },
+  description: {
+    type: String,
+    default: "",
+  },
+
+  seasons: {
+    type: [String],
+    default: [],
+  },
+
+  months: {
+    type: [String],
+    default: [],
+  },
+},
 
     diseases: {
       type: String,

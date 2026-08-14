@@ -1,0 +1,123 @@
+.fruit-generation-loading {
+    min-height: 55vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 60px 20px;
+}
+
+.generation-card {
+    width: min(560px, 100%);
+
+    text-align: center;
+}
+
+.generation-spinner {
+    width: 42px;
+    height: 42px;
+
+    margin: 0 auto 28px;
+
+    border: 1.5px solid #d8d8d8;
+    border-top-color: #111;
+
+    border-radius: 50%;
+
+    animation:
+        generation-spin 1.2s linear infinite;
+}
+
+.generation-spinner div {
+    width: 6px;
+    height: 6px;
+
+    margin: 4px auto 0;
+
+    border-radius: 50%;
+
+    background: #111;
+}
+
+@keyframes generation-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.generation-card h2 {
+    margin: 0;
+
+    font-family:
+        "Instrument Serif",
+        serif;
+
+    font-size: 48px;
+    font-weight: 400;
+
+    color: #111;
+}
+
+.generation-message {
+    margin-top: 10px;
+
+    font-family: "Inter", sans-serif;
+
+    font-size: 15px;
+
+    color: #777;
+}
+
+.generation-timer {
+    margin-top: 22px;
+
+    font-family:
+        "Inter",
+        sans-serif;
+
+    font-size: 22px;
+
+    letter-spacing: 0.08em;
+
+    color: #222;
+}
+
+.weird-fact {
+    margin-top: 42px;
+
+    padding: 28px;
+
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+}
+
+.weird-fact-tag {
+    font-family:
+        "Inter",
+        sans-serif;
+
+    font-size: 11px;
+
+    letter-spacing: 0.12em;
+
+    text-transform: uppercase;
+
+    color: #999;
+}
+
+.weird-fact p {
+    margin: 12px auto 0;
+
+    max-width: 480px;
+
+    font-family:
+        "Instrument Serif",
+        serif;
+
+    font-size: 26px;
+
+    line-height: 1.25;
+
+    color: #222;
+}

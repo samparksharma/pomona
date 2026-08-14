@@ -9,8 +9,9 @@ const {
   searchWikimediaImages,
 } = require("../services/wikimediaService");
 
+
 // =====================================================
-// GET ALL FRUITS
+// GET ALL FRUITS - SEEDED RANDOM ORDER
 // =====================================================
 
 const getAllFruits = async (req, res) => {
@@ -18,21 +19,68 @@ const getAllFruits = async (req, res) => {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 20;
 
+    const seed =
+      String(req.query.seed || "default");
+
     const skip = (page - 1) * limit;
 
-    const fruits = await Fruit.find()
-      .skip(skip)
-      .limit(limit);
+    const total =
+      await Fruit.countDocuments();
 
-    const total = await Fruit.countDocuments();
+    const fruits =
+      await Fruit.find().lean();
+
+    // -----------------------------------------
+    // DETERMINISTIC SEEDED SHUFFLE
+    // -----------------------------------------
+
+    const hashString = (value) => {
+      let hash = 0;
+
+      for (let i = 0; i < value.length; i++) {
+        hash =
+          (hash << 5) -
+          hash +
+          value.charCodeAt(i);
+
+        hash |= 0;
+      }
+
+      return Math.abs(hash);
+    };
+
+    fruits.sort((a, b) => {
+      const aHash = hashString(
+        `${seed}-${a._id}`
+      );
+
+      const bHash = hashString(
+        `${seed}-${b._id}`
+      );
+
+      return aHash - bHash;
+    });
+
+    const paginatedFruits =
+      fruits.slice(
+        skip,
+        skip + limit
+      );
 
     res.status(200).json({
-      fruits,
+      fruits: paginatedFruits,
       currentPage: page,
-      totalPages: Math.ceil(total / limit),
+      totalPages: Math.ceil(
+        total / limit
+      ),
       totalFruits: total,
     });
   } catch (error) {
+    console.error(
+      "Failed to fetch fruits:",
+      error
+    );
+
     res.status(500).json({
       message: error.message,
     });
@@ -83,7 +131,8 @@ const getFruitDetails = async (req, res) => {
       )}`,
       {
         headers: {
-          "User-Agent": "Pomona/1.0 (Educational Project)",
+          "User-Agent":
+            "Pomona/1.0 (Educational Project)",
           Accept: "application/json",
         },
       }
@@ -120,7 +169,8 @@ const createFruit = async (req, res) => {
         )}`,
         {
           headers: {
-            "User-Agent": "Pomona/1.0 (Educational Project)",
+            "User-Agent":
+              "Pomona/1.0 (Educational Project)",
             Accept: "application/json",
           },
         }
@@ -187,8 +237,11 @@ const searchFruits = async (req, res) => {
       const aName = a.name.toLowerCase();
       const bName = b.name.toLowerCase();
 
-      const aStarts = aName.startsWith(lowerQuery);
-      const bStarts = bName.startsWith(lowerQuery);
+      const aStarts =
+        aName.startsWith(lowerQuery);
+
+      const bStarts =
+        bName.startsWith(lowerQuery);
 
       if (aStarts && !bStarts) return -1;
       if (!aStarts && bStarts) return 1;
@@ -196,7 +249,9 @@ const searchFruits = async (req, res) => {
       return aName.localeCompare(bName);
     });
 
-    res.status(200).json(fruits.slice(0, 8));
+    res.status(200).json(
+      fruits.slice(0, 8)
+    );
   } catch (error) {
     console.log(error);
 
@@ -216,7 +271,7 @@ const findOrCreateFruit = async (req, res) => {
     const { name } = req.body;
 
     // -----------------------------------------------
-    // Validate input
+    // VALIDATE INPUT
     // -----------------------------------------------
 
     if (!name || !name.trim()) {
@@ -231,12 +286,21 @@ const findOrCreateFruit = async (req, res) => {
     // 1. CHECK MONGODB FIRST
     // -----------------------------------------------
 
-    const existingFruit = await Fruit.findOne({
-      name: {
-        $regex: `^${fruitName}$`,
-        $options: "i",
-      },
-    });
+    // Escape regex characters so an unusual fruit name
+    // cannot accidentally behave like a regex pattern.
+    const escapedFruitName =
+      fruitName.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&"
+      );
+
+    const existingFruit =
+      await Fruit.findOne({
+        name: {
+          $regex: `^${escapedFruitName}$`,
+          $options: "i",
+        },
+      });
 
     if (existingFruit) {
       console.log(
@@ -270,7 +334,6 @@ const findOrCreateFruit = async (req, res) => {
       );
 
       wikiData = wikiResponse.data;
-
     } catch (wikiError) {
       console.log(
         "Wikipedia could not find this fruit:",
@@ -284,73 +347,112 @@ const findOrCreateFruit = async (req, res) => {
     }
 
     // -----------------------------------------------
-// 2.5 FETCH WIKIMEDIA IMAGES
-// -----------------------------------------------
-
-const wikiImages =
-  await searchWikimediaImages(
-    fruitName,
-    8
-  );
-
-    // -----------------------------------------------
     // 3. ASK GEMINI TO GENERATE POMONA CONTENT
     // -----------------------------------------------
 
     let aiData;
 
     try {
-      const aiResponse =
+      aiData =
         await generateFruitData(fruitName);
 
-      // Gemini should return JSON.
-      // Parse it if it comes back as a string.
-      aiData =
-        typeof aiResponse === "string"
-          ? JSON.parse(aiResponse)
-          : aiResponse;
-
+      console.log(
+        `Gemini generated content for: ${fruitName}`
+      );
     } catch (aiError) {
-  console.error(
-    "========== GEMINI ERROR =========="
-  );
+      console.error(
+        "========== GEMINI ERROR =========="
+      );
 
-  console.error(aiError);
+      console.error(aiError);
 
-  console.error(
-    "=================================="
-  );
+      console.error(
+        "=================================="
+      );
 
-  return res.status(500).json({
-    message:
-      "Fruit found, but AI information generation failed",
-  });
-}
+      return res.status(500).json({
+        message:
+          "Fruit found, but AI information generation failed",
+      });
+    }
 
     // -----------------------------------------------
-    // 4. BUILD DATABASE DOCUMENT
+    // 4. FETCH WIKIMEDIA USING SCIENTIFIC NAME
     // -----------------------------------------------
+
+    let wikiImages = [];
+
+    try {
+      wikiImages =
+        await searchWikimediaImages(
+          fruitName,
+          aiData.latinName ||
+            wikiData.title ||
+            "",
+          10
+        );
+
+      console.log(
+        `Wikimedia returned ${wikiImages.length} images for ${fruitName}`
+      );
+    } catch (imageError) {
+      console.error(
+        "Wikimedia image search failed:",
+        imageError.message
+      );
+
+      // Image failure should NOT prevent the fruit
+      // from being created.
+      wikiImages = [];
+    }
+
+    // -----------------------------------------------
+    // 5. BUILD DATABASE DOCUMENT
+    // -----------------------------------------------
+
+    const wikiHeroImage =
+      wikiData.thumbnail?.source || "";
+
+    const fallbackHeroImage =
+      wikiImages[0]?.url || "";
+
+    const heroImage =
+      wikiHeroImage || fallbackHeroImage;
+
+    const galleryImages = [
+      ...(heroImage ? [heroImage] : []),
+
+      ...wikiImages
+        .map((image) => image.url)
+        .filter(
+          (url) => url && url !== heroImage
+        )
+        .slice(0, 7),
+    ];
 
     const fruitData = {
-      // Basic information
+      // ---------------------------------------------
+      // BASIC INFORMATION
+      // ---------------------------------------------
+
       name: fruitName,
 
       latinName:
-  aiData.latinName || "",
+        aiData.latinName || "",
 
-family:
-  aiData.family || "",
+      family:
+        aiData.family || "",
 
-genus:
-  aiData.genus || "",
+      genus:
+        aiData.genus || "",
 
-species:
-  aiData.species || "",
+      species:
+        aiData.species || "",
 
       origin:
-        aiData.originHistory?.originRegion || "",
+        aiData.originHistory?.originRegion ||
+        "",
 
-      // Wikipedia overview
       overview:
         wikiData.extract || "",
 
@@ -363,47 +465,48 @@ species:
 
       originHistory: {
         summary:
-          aiData.originHistory?.summary || "",
+          aiData.originHistory?.summary ||
+          "",
 
         detailedHistory:
-          aiData.originHistory?.detailedHistory || "",
+          aiData.originHistory
+            ?.detailedHistory || "",
 
         originRegion:
-          aiData.originHistory?.originRegion || "",
+          aiData.originHistory
+            ?.originRegion || "",
 
         historicalSpread:
-          aiData.originHistory?.historicalSpread || "",
+          aiData.originHistory
+            ?.historicalSpread || "",
 
         culturalImportance:
-          aiData.originHistory?.culturalImportance || "",
+          aiData.originHistory
+            ?.culturalImportance || "",
       },
 
       // ---------------------------------------------
       // IMAGES
       // ---------------------------------------------
 
-     heroImage:
-  wikiData.thumbnail?.source || "",
+      heroImage,
 
-gallery: [
-  ...(wikiData.thumbnail?.source
-    ? [wikiData.thumbnail.source]
-    : []),
+      gallery: galleryImages,
 
-  ...wikiImages
-    .map((image) => image.url)
-    .slice(0, 7),
-],
+      // For now these are selected from the
+      // best Wikimedia results. Later we can make
+      // dedicated searches for historical/maps.
+      originImages:
+        wikiImages
+          .slice(1, 4)
+          .map((image) => image.url),
 
-originImages: wikiImages
-  .slice(1, 4)
-  .map((image) => image.url),
+      historicalImages:
+        wikiImages
+          .slice(4, 7)
+          .map((image) => image.url),
 
-historicalImages: wikiImages
-  .slice(4, 7)
-  .map((image) => image.url),
-
-mapImage: "",
+      mapImage: "",
 
       // ---------------------------------------------
       // DETAILED CONTENT
@@ -415,8 +518,20 @@ mapImage: "",
       growingConditions:
         aiData.growingConditions || "",
 
-      harvest:
-        aiData.harvest || "",
+      harvest: {
+      description:
+      aiData.harvest?.description || "",
+
+      seasons:
+       Array.isArray(aiData.harvest?.seasons)
+       ? aiData.harvest.seasons
+       : [],
+
+      months:
+       Array.isArray(aiData.harvest?.months)
+       ? aiData.harvest.months
+       : [],
+},
 
       diseases:
         aiData.diseases || "",
@@ -446,7 +561,7 @@ mapImage: "",
           : [],
 
       // ---------------------------------------------
-      // FUTURE / OPTIONAL
+      // OPTIONAL / FUTURE
       // ---------------------------------------------
 
       healthBenefits: [],
@@ -457,7 +572,7 @@ mapImage: "",
     };
 
     // -----------------------------------------------
-    // 5. SAVE TO MONGODB
+    // 6. SAVE TO MONGODB
     // -----------------------------------------------
 
     const newFruit =
@@ -468,14 +583,13 @@ mapImage: "",
     );
 
     // -----------------------------------------------
-    // 6. RETURN NEW FRUIT
+    // 7. RETURN NEW FRUIT
     // -----------------------------------------------
 
     return res.status(201).json({
       source: "created",
       fruit: newFruit,
     });
-
   } catch (error) {
     console.log(
       "findOrCreateFruit error:",

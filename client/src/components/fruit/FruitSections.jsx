@@ -102,9 +102,9 @@ function FruitSections({ fruit }) {
         <h2>Harvest</h2>
 
         <p>
-          {data.harvest ||
-            "Harvest information coming soon."}
-        </p>
+  {data.harvest?.description ||
+    "Harvest information coming soon."}
+</p>
       </section>
 
       {/* Diseases */}

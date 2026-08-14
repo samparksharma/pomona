@@ -20,7 +20,7 @@ IMPORTANT RULES:
 - Write substantial content rather than short one-line answers.
 - Avoid repetition between sections.
 - Prefer well-established factual information.
-- Do not invent specific dates, measurements, scientific claims, cultivar characteristics, or historical events when you are uncertain.
+- Do not invent specific dates, measurements, scientific claims, cultivar characteristics, or historical events when uncertain.
 - When a fact is uncertain or varies by cultivar/region, use careful wording such as "some cultivars", "typically", or "can".
 - Do not make medical claims or claim that a fruit treats or cures diseases.
 - Nutrition should describe commonly recognized nutritional characteristics without inventing precise laboratory values.
@@ -38,7 +38,9 @@ CONTENT LENGTH:
 - originHistory.culturalImportance: about 100-200 words.
 - nutrition: about 200-300 words.
 - growingConditions: about 250-350 words.
-- harvest: about 180-250 words.
+- harvest.description: about 180-250 words.
+- harvest.seasons: one or more of "Spring", "Summer", "Autumn", "Winter".
+- harvest.months: the likely harvest months as full month names.
 - diseases: about 200-300 words.
 - companionPlants: about 150-220 words.
 - cultivars: about 200-300 words.
@@ -48,8 +50,7 @@ CONTENT LENGTH:
 Return JSON using exactly this structure:
 
 {
-
-"latinName": "",
+  "latinName": "",
   "family": "",
   "genus": "",
   "species": "",
@@ -66,7 +67,11 @@ Return JSON using exactly this structure:
 
   "growingConditions": "",
 
-  "harvest": "",
+  "harvest": {
+  "description": "",
+  "seasons": [],
+  "months": []
+},
 
   "diseases": "",
 
@@ -98,12 +103,81 @@ Return JSON using exactly this structure:
 }
 `;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3.5-flash",
-    contents: prompt,
-  });
+  const maxRetries = 3;
 
-  return response.text;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+        },
+      });
+
+      const text = response.text;
+
+      if (!text) {
+        throw new Error(
+          "Gemini returned an empty response."
+        );
+      }
+
+      // Be defensive in case the model still adds code fences.
+      const cleaned = text
+        .replace(/^```json\s*/i, "")
+        .replace(/^```\s*/i, "")
+        .replace(/\s*```$/i, "")
+        .trim();
+
+      try {
+        return JSON.parse(cleaned);
+      } catch (parseError) {
+        console.error(
+          "Gemini returned invalid JSON:"
+        );
+
+        console.error(cleaned);
+
+        throw new Error(
+          "Gemini returned invalid JSON."
+        );
+      }
+    } catch (error) {
+      const status = error?.status;
+
+      // Temporary server overload / rate-limit errors.
+      const retryable =
+        status === 429 ||
+        status === 503 ||
+        status === 500;
+
+      // Permanent error or last retry.
+      if (
+        !retryable ||
+        attempt === maxRetries - 1
+      ) {
+        throw error;
+      }
+
+      // 1s → 2s → 4s
+      const delay =
+        Math.pow(2, attempt) * 1000;
+
+      console.log(
+        `Gemini temporary error (${status}). ` +
+        `Retrying in ${delay / 1000} seconds...`
+      );
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, delay)
+      );
+    }
+  }
+
+  throw new Error(
+    "Gemini request failed after all retries."
+  );
 }
 
 module.exports = {
