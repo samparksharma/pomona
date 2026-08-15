@@ -6,6 +6,7 @@
     position: relative;
 
     width: 100%;
+
     min-height: 100vh;
 
     background: #fafaf8;
@@ -51,13 +52,15 @@
             7.2vw,
             118px);
 
+    font-weight: 400;
+
     line-height: 0.9;
 
     text-align: center;
 
-    color: #111;
-
     letter-spacing: -0.025em;
+
+    color: #111;
 
     white-space: nowrap;
 
@@ -75,7 +78,7 @@
     left: 50%;
     bottom: -20px;
 
-    z-index: 3;
+    z-index: 5;
 
     width: min(810px,
             61vw);
@@ -100,14 +103,120 @@
 
 
 /* =====================================================
-   RESPONSIVE
+   CARD LAYER
+===================================================== */
+
+.showcase-card-layer {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 4;
+
+    pointer-events: none;
+}
+
+
+/* =====================================================
+   FRUIT CARDS
+===================================================== */
+
+.showcase-card {
+    position: absolute;
+
+    left: 50%;
+    top: 53%;
+
+    width: 190px;
+    min-height: 230px;
+
+    padding: 24px;
+
+    border-radius: 24px;
+
+    background:
+        rgba(255, 255, 255, 0.50);
+
+    border:
+        1px solid rgba(255, 255, 255, 0.72);
+
+    box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.10);
+
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+
+    transform:
+        translate(-50%, -50%);
+
+    opacity: 0;
+}
+
+
+/* =====================================================
+   CARD CONTENT
+===================================================== */
+
+.showcase-card-label {
+    display: block;
+
+    margin-bottom: 16px;
+
+    font-family: "Inter", sans-serif;
+
+    font-size: 10px;
+
+    letter-spacing: 0.14em;
+
+    text-transform: uppercase;
+
+    color: #888;
+}
+
+.showcase-card h3 {
+    margin: 0;
+
+    font-family:
+        "Instrument Serif",
+        serif;
+
+    font-size: 40px;
+
+    font-weight: 400;
+
+    line-height: 0.95;
+
+    color: #111;
+}
+
+.showcase-card p {
+    margin: 10px 0 0;
+
+    font-family: "Inter", sans-serif;
+
+    font-size: 12px;
+
+    font-style: italic;
+
+    color: #777;
+}
+
+.showcase-card-arrow {
+    display: block;
+
+    margin-top: 28px;
+
+    font-size: 18px;
+
+    color: #111;
+}
+
+
+/* =====================================================
+   MOBILE
 ===================================================== */
 
 @media (max-width: 900px) {
-
-    .showcase-stage {
-        width: 94%;
-    }
 
     .showcase-title {
         font-size: 70px;
@@ -116,30 +225,68 @@
     .showcase-bowl {
         width: 78vw;
     }
+
+    .showcase-card {
+        width: 155px;
+
+        min-height: 200px;
+
+        padding: 20px;
+    }
+
+    .showcase-card h3 {
+        font-size: 32px;
+    }
 }
 
 
 @media (max-width: 600px) {
 
-    .showcase {
-        min-height: 100svh;
-    }
-
     .showcase-stage {
-        height: 100svh;
+        width: 100%;
     }
 
     .showcase-title {
+        width: 92%;
+
         font-size: 48px;
 
         white-space: normal;
-
-        width: 90%;
     }
 
     .showcase-bowl {
         width: 100vw;
 
         bottom: -10px;
+    }
+
+    .showcase-card {
+        width: 125px;
+
+        min-height: 165px;
+
+        padding: 16px;
+
+        border-radius: 18px;
+    }
+
+    .showcase-card-label {
+        margin-bottom: 10px;
+
+        font-size: 8px;
+    }
+
+    .showcase-card h3 {
+        font-size: 27px;
+    }
+
+    .showcase-card p {
+        font-size: 10px;
+    }
+
+    .showcase-card-arrow {
+        margin-top: 18px;
+
+        font-size: 15px;
     }
 }
