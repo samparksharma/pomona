@@ -1,18 +1,107 @@
 import "./Hero.css";
 import { motion } from "framer-motion";
+import { useLayoutEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import heroImage from "../../assets/images/pomona-hero.png";
 
+gsap.registerPlugin(ScrollTrigger);
+
 function Hero() {
+  const heroRef = useRef(null);
+  const contentRef = useRef(null);
+
+  useLayoutEffect(() => {
+    const hero = heroRef.current;
+    const content = contentRef.current;
+
+    if (!hero || !content) return;
+
+    const ctx = gsap.context(() => {
+      const background = hero.querySelector(
+        ".home-hero-background"
+      );
+
+      // ---------------------------------------------
+      // Background parallax
+      // ---------------------------------------------
+
+      if (background) {
+        gsap.to(background, {
+          yPercent: 10,
+          scale: 1.04,
+          ease: "none",
+          scrollTrigger: {
+            trigger: hero,
+            start: "top top",
+            end: "bottom top",
+            scrub: 1,
+          },
+        });
+      }
+
+      // ---------------------------------------------
+      // Content parallax
+      // ---------------------------------------------
+
+      gsap.to(content, {
+        yPercent: -8,
+        ease: "none",
+        scrollTrigger: {
+          trigger: hero,
+          start: "top top",
+          end: "bottom top",
+          scrub: 1,
+        },
+      });
+
+      // ---------------------------------------------
+      // Soft hero exit
+      // ---------------------------------------------
+
+      gsap.to(hero, {
+        scale: 0.97,
+        opacity: 0.94,
+        ease: "none",
+        scrollTrigger: {
+          trigger: hero,
+          start: "55% top",
+          end: "bottom top",
+          scrub: 1,
+        },
+      });
+    }, hero);
+
+    return () => {
+      ctx.revert();
+    };
+  }, []);
+
   return (
     <section
+      ref={heroRef}
       className="home-hero"
-      style={{
-        backgroundImage: `url(${heroImage})`,
-      }}
     >
-      <div className="home-hero-content">
+      {/* -----------------------------------------
+          BACKGROUND
+      ----------------------------------------- */}
 
+      <div
+        className="home-hero-background"
+        style={{
+          backgroundImage: `url(${heroImage})`,
+        }}
+      />
+
+      {/* -----------------------------------------
+          CONTENT
+      ----------------------------------------- */}
+
+      <div
+        ref={contentRef}
+        className="home-hero-content"
+      >
         <div className="home-hero-left">
 
           <motion.h1
@@ -80,8 +169,7 @@ function Hero() {
 
         </div>
 
-        <div className="home-hero-right"></div>
-
+        <div className="home-hero-right" />
       </div>
     </section>
   );
