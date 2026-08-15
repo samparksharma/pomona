@@ -1,72 +1,145 @@
+/* =====================================================
+   SHOWCASE
+===================================================== */
+
 .showcase {
-
-    min-height: 100vh;
-
-    background: #FAFAF8;
-
-    display: flex;
-    flex-direction: column;
-
-    justify-content: flex-end;
-    align-items: center;
-
     position: relative;
 
+    width: 100%;
+    min-height: 100vh;
+
+    background: #fafaf8;
+
     overflow: hidden;
-
-    padding: 0 80px 80px;
 }
 
-.showcase-content {
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+/* =====================================================
+   STAGE
+===================================================== */
 
-    text-align: center;
+.showcase-stage {
+    position: relative;
 
-    margin-bottom: 120px;
+    width: min(1500px, 92%);
+
+    height: 100vh;
+
+    margin: 0 auto;
 }
+
+
+/* =====================================================
+   TITLE
+===================================================== */
 
 .showcase-title {
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    z-index: 2;
+
+    width: max-content;
+
+    transform: translateX(-50%);
 
     font-family: "Instrument Serif", serif;
 
-    font-size: 96px;
+    font-size: clamp(58px,
+            7.2vw,
+            118px);
 
-    line-height: .95;
+    line-height: 0.9;
 
-    color: #111111;
+    text-align: center;
 
-    margin-bottom: 28px;
+    color: #111;
+
+    letter-spacing: -0.025em;
+
+    white-space: nowrap;
+
+    pointer-events: none;
 }
 
+
+/* =====================================================
+   BOWL
+===================================================== */
 
 .showcase-bowl {
+    position: absolute;
 
-    width: 100%;
+    left: 50%;
+    bottom: -20px;
 
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
+    z-index: 3;
+
+    width: min(810px,
+            61vw);
+
+    transform: translateX(-50%);
+
+    pointer-events: none;
 }
 
-.bowl-placeholder {
+.showcase-bowl img {
+    display: block;
 
-    width: 280px;
-    height: 180px;
+    width: 100%;
+    height: auto;
 
-    border-radius: 30px;
+    object-fit: contain;
 
-    border: 2px dashed rgba(0, 0, 0, .08);
+    user-select: none;
 
-    background: rgba(0, 0, 0, .015);
+    -webkit-user-drag: none;
+}
 
-    display: flex;
-    justify-content: center;
-    align-items: center;
 
-    color: #999999;
+/* =====================================================
+   RESPONSIVE
+===================================================== */
 
-    font-size: 15px;
+@media (max-width: 900px) {
+
+    .showcase-stage {
+        width: 94%;
+    }
+
+    .showcase-title {
+        font-size: 70px;
+    }
+
+    .showcase-bowl {
+        width: 78vw;
+    }
+}
+
+
+@media (max-width: 600px) {
+
+    .showcase {
+        min-height: 100svh;
+    }
+
+    .showcase-stage {
+        height: 100svh;
+    }
+
+    .showcase-title {
+        font-size: 48px;
+
+        white-space: normal;
+
+        width: 90%;
+    }
+
+    .showcase-bowl {
+        width: 100vw;
+
+        bottom: -10px;
+    }
 }
