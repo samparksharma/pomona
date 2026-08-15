@@ -11,38 +11,58 @@ gsap.registerPlugin(ScrollTrigger);
 function Hero() {
   const heroRef = useRef(null);
   const contentRef = useRef(null);
+  const imageRef = useRef(null);
 
   useLayoutEffect(() => {
     const hero = heroRef.current;
     const content = contentRef.current;
+    const image = imageRef.current;
 
-    if (!hero || !content) return;
+    if (!hero || !content || !image) return;
 
     const ctx = gsap.context(() => {
-      const background = hero.querySelector(
-        ".home-hero-background"
-      );
-
       // ---------------------------------------------
-      // Background parallax
+      // HERO IMAGE REVEAL
       // ---------------------------------------------
 
-      if (background) {
-        gsap.to(background, {
-          yPercent: 10,
-          scale: 1.04,
-          ease: "none",
-          scrollTrigger: {
-            trigger: hero,
-            start: "top top",
-            end: "bottom top",
-            scrub: 1,
-          },
-        });
-      }
+      const reveal = gsap.timeline({
+  delay: 0.05,
+});
+
+reveal.fromTo(
+  image,
+  {
+    clipPath: "circle(0% at 50% 50%)",
+    scale: 1.08,
+    opacity: 0,
+  },
+  {
+    clipPath: "circle(75% at 50% 50%)",
+    scale: 1,
+    opacity: 1,
+    duration: 1.7,
+    ease: [0.22, 1, 0.36, 1],
+  }
+);
 
       // ---------------------------------------------
-      // Content parallax
+      // BACKGROUND PARALLAX
+      // ---------------------------------------------
+
+      gsap.to(image, {
+        yPercent: 10,
+        scale: 1.04,
+        ease: "none",
+        scrollTrigger: {
+          trigger: hero,
+          start: "top top",
+          end: "bottom top",
+          scrub: 1,
+        },
+      });
+
+      // ---------------------------------------------
+      // CONTENT PARALLAX
       // ---------------------------------------------
 
       gsap.to(content, {
@@ -57,7 +77,7 @@ function Hero() {
       });
 
       // ---------------------------------------------
-      // Soft hero exit
+      // SOFT HERO EXIT
       // ---------------------------------------------
 
       gsap.to(hero, {
@@ -83,20 +103,17 @@ function Hero() {
       ref={heroRef}
       className="home-hero"
     >
-      {/* -----------------------------------------
-          BACKGROUND
-      ----------------------------------------- */}
+      {/* HERO IMAGE */}
 
       <div
+        ref={imageRef}
         className="home-hero-background"
         style={{
           backgroundImage: `url(${heroImage})`,
         }}
       />
 
-      {/* -----------------------------------------
-          CONTENT
-      ----------------------------------------- */}
+      {/* HERO CONTENT */}
 
       <div
         ref={contentRef}

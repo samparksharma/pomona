@@ -117,7 +117,7 @@
             transparent 100%);
 
     mask-image:
-        radial-gradient(circle 70px at var(--reveal-x) var(--reveal-y),
+        radial-gradient(circle 190px at var(--reveal-x) var(--reveal-y),
 
             black 0%,
             black 55%,

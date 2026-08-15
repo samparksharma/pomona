@@ -19,6 +19,7 @@
 
 .home-hero-background {
     position: absolute;
+
     inset: -6% 0;
 
     z-index: 0;
@@ -27,7 +28,12 @@
     background-position: center;
     background-repeat: no-repeat;
 
-    will-change: transform;
+    will-change:
+        transform,
+        clip-path,
+        opacity;
+
+    transform-origin: center center;
 }
 
 
