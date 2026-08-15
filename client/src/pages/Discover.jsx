@@ -1,4 +1,5 @@
 import "./Discover.css";
+import discoverBg from "../assets/images/discover-bg.png";
 import { motion } from "framer-motion";
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
@@ -53,8 +54,11 @@ function Discover() {
   // ===================================================
 
   const [fruits, setFruits] = useState([]);
+
   const [randomSeed] = useState(
-  () => Math.random().toString(36).slice(2));
+    () => Math.random().toString(36).slice(2)
+  );
+
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -79,8 +83,7 @@ function Discover() {
   // AI / FRUIT CREATION
   // ===================================================
 
-  const [creatingFruit, setCreatingFruit] =
-    useState(false);
+  const [creatingFruit, setCreatingFruit] = useState(false);
 
   const loader = useRef(null);
 
@@ -94,9 +97,9 @@ function Discover() {
     try {
       setLoading(true);
 
-     const response = await axios.get(
-  `http://localhost:5000/api/fruits?page=${page}&limit=15&seed=${randomSeed}`
-);
+      const response = await axios.get(
+        `http://localhost:5000/api/fruits?page=${page}&limit=15&seed=${randomSeed}`
+      );
 
       console.log(
         "PAGE:",
@@ -111,9 +114,7 @@ function Discover() {
         ...response.data.fruits,
       ]);
 
-      if (
-        page >= response.data.totalPages
-      ) {
+      if (page >= response.data.totalPages) {
         setHasMore(false);
       }
     } catch (error) {
@@ -168,7 +169,7 @@ function Discover() {
 
       const fruit = response.data.fruit;
 
-      // Keep the query visible and replace
+      // Keep search visible and replace
       // the loading state with the new card.
       setSearchResults([fruit]);
     } catch (error) {
@@ -184,16 +185,17 @@ function Discover() {
   // ===================================================
   // FETCH NORMAL FRUITS WHEN PAGE CHANGES
   // ===================================================
-useEffect(() => {
-  if (
-    searchQuery.trim() ||
-    creatingFruit
-  ) {
-    return;
-  }
 
-  fetchFruits();
-}, [page, randomSeed]);
+  useEffect(() => {
+    if (
+      searchQuery.trim() ||
+      creatingFruit
+    ) {
+      return;
+    }
+
+    fetchFruits();
+  }, [page]);
 
   // ===================================================
   // SEARCH MONGODB
@@ -239,10 +241,7 @@ useEffect(() => {
       cancelled = true;
       clearTimeout(timeout);
     };
-  }, [
-    searchQuery,
-    creatingFruit,
-  ]);
+  }, [searchQuery, creatingFruit]);
 
   // ===================================================
   // RESET PAGINATION
@@ -257,10 +256,7 @@ useEffect(() => {
     } else {
       setHasMore(true);
     }
-  }, [
-    searchQuery,
-    creatingFruit,
-  ]);
+  }, [searchQuery, creatingFruit]);
 
   // ===================================================
   // INFINITE SCROLL
@@ -285,9 +281,7 @@ useEffect(() => {
           ) {
             console.log("INTERSECTED");
 
-            setPage(
-              (prev) => prev + 1
-            );
+            setPage((prev) => prev + 1);
           }
         },
         {
@@ -326,14 +320,14 @@ useEffect(() => {
     selectedSeason === "All"
       ? displayedFruits
       : displayedFruits.filter((fruit) => {
-          const seasons =
+          const fruitSeasons =
             fruit.harvest?.seasons;
 
-          if (!Array.isArray(seasons)) {
+          if (!Array.isArray(fruitSeasons)) {
             return false;
           }
 
-          return seasons.some(
+          return fruitSeasons.some(
             (season) =>
               season.toLowerCase() ===
               selectedSeason.toLowerCase()
@@ -347,24 +341,27 @@ useEffect(() => {
   return (
     <>
       <Navbar
-       light
-       showFilter
-       seasons={seasons}
-       selectedSeason={selectedSeason}
-       setSelectedSeason={setSelectedSeason}
-       filterOpen={filterOpen}
-       setFilterOpen={setFilterOpen}
-       logoLinksHome={false}
-       />
+        light
+        showFilter
+        seasons={seasons}
+        selectedSeason={selectedSeason}
+        setSelectedSeason={setSelectedSeason}
+        filterOpen={filterOpen}
+        setFilterOpen={setFilterOpen}
+        logoLinksHome={false}
+      />
 
-      <main className="discover-page">
-
+      <main
+        className="discover-page"
+        style={{
+          "--discover-bg": `url(${discoverBg})`,
+        }}
+      >
         {/* =========================================
             HERO
         ========================================= */}
 
         <section className="discover-hero">
-
           <motion.h1
             className="discover-title"
             initial={{
@@ -411,7 +408,6 @@ useEffect(() => {
             onChange={setSearchQuery}
             onSubmit={handleSearchSubmit}
           />
-
         </section>
 
         {/* =========================================
@@ -419,45 +415,20 @@ useEffect(() => {
         ========================================= */}
 
         <section className="discover-content">
-
-          
-
-          {/* =======================================
-              CREATION LOADING
-          ======================================= */}
-
           {creatingFruit ? (
-
             <FruitGenerationLoading />
-
           ) : searchQuery.trim() &&
-            searchResults.length ===
-              0 ? (
-
-            /* -------------------------------------
-               SEARCH NOT FOUND
-            ------------------------------------- */
-
+            searchResults.length === 0 ? (
             <div className="search-empty">
-
               <p>
-                No fruit found in
-                the collection.
+                No fruit found in the collection.
               </p>
 
               <span>
-                Press Enter ↵ to
-                discover it.
+                Press Enter ↵ to discover it.
               </span>
-
             </div>
-
           ) : (
-
-            /* -------------------------------------
-               FRUIT GRID
-            ------------------------------------- */
-
             <motion.div
               key={
                 searchResults.length > 0
@@ -474,43 +445,25 @@ useEffect(() => {
               }}
               transition={{
                 duration: 0.55,
-                ease: [
-                  0.22,
-                  1,
-                  0.36,
-                  1,
-                ],
+                ease: [0.22, 1, 0.36, 1],
               }}
             >
-
-              {filteredFruits.length >
-              0 ? (
-
+              {filteredFruits.length > 0 ? (
                 <MasonryGrid
-                  fruits={
-                    filteredFruits
-                  }
+                  fruits={filteredFruits}
                 />
-
               ) : (
-
                 <div className="search-empty">
-
                   <p>
-                    No fruits found
-                    for{" "}
+                    No fruits found for{" "}
                     {selectedSeason}.
                   </p>
 
                   <span>
-                    Try another
-                    season.
+                    Try another season.
                   </span>
-
                 </div>
-
               )}
-
             </motion.div>
           )}
 
@@ -528,7 +481,6 @@ useEffect(() => {
                 }}
               />
             )}
-
         </section>
       </main>
     </>

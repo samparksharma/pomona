@@ -1,272 +1,374 @@
-.discover-page {
-    min-height: 100vh;
+ /* =====================================================
+    DISCOVER PAGE
+ ===================================================== */
 
-    background: #e7e7e4;
+ .discover-page {
+     position: relative;
 
-    padding-top: 140px;
-    padding-bottom: 100px;
-}
+     min-height: 100vh;
 
-/* ---------------- HERO ---------------- */
+     background-color: #e7e7e4;
 
-.discover-hero {
+     /* Fruit artwork only occupies the upper area */
+     background-image: var(--discover-bg);
+     background-position: center top;
+     background-size: 100% 720px;
+     background-repeat: no-repeat;
 
-    width: min(1100px, 92%);
-    margin: auto;
+     padding-bottom: 100px;
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+     overflow: hidden;
+ }
 
-    text-align: center;
-}
 
-.discover-title {
+ /* =====================================================
+   GLASS / ATMOSPHERE
+===================================================== */
 
-    margin: 0;
+ /*
+   The glass layer covers the page, but the actual
+   artwork only exists in the upper background area.
+*/
+ .discover-page::before {
+     content: "";
 
-    font-family: "Instrument Serif", serif;
+     position: absolute;
 
-    font-size: 82px;
-    line-height: .95;
+     left: 0;
+     right: 0;
+     top: 0;
 
-    color: #111111;
-}
+     height: 720px;
 
-.discover-subtitle {
+     z-index: 0;
 
-    margin-top: 22px;
+     background: rgba(255, 255, 255, 0.30);
 
-    font-family: "Inter", sans-serif;
+     backdrop-filter: blur(10px);
+     -webkit-backdrop-filter: blur(10px);
 
-    font-size: 18px;
-    line-height: 1.7;
+     pointer-events: none;
+ }
 
-    color: #666666;
 
-    max-width: 620px;
-}
+ /* =====================================================
+   HERO
+===================================================== */
 
-/* ---------------- SEARCH ---------------- */
+ .discover-hero {
+     position: relative;
 
-/* ---------------- SEARCH ---------------- */
+     z-index: 1;
 
-.discover-search-wrapper {
+     width: min(1100px, 92%);
 
-    width: 100%;
-    max-width: 760px;
+     margin: 0 auto;
 
-    margin-top: 58px;
-}
+     padding-top: 140px;
 
-.discover-search-box {
+     display: flex;
+     flex-direction: column;
+     align-items: center;
 
-    display: flex;
-    align-items: center;
+     text-align: center;
+ }
 
-    gap: 16px;
+ .discover-title {
+     margin: 0;
 
-    width: 100%;
+     font-family: "Instrument Serif", serif;
 
-    padding: 20px 26px;
+     font-size: 82px;
+     line-height: 0.95;
 
-    border-radius: 999px;
+     color: #111111;
+ }
 
-    background: #ffffff;
+ .discover-subtitle {
+     margin-top: 22px;
 
-    border: 1.4px solid #111111;
+     max-width: 620px;
 
-    transition:
-        transform .35s ease,
-        box-shadow .35s ease,
-        border-color .35s ease;
-}
+     font-family: "Inter", sans-serif;
 
-.discover-search-box:hover {
+     font-size: 18px;
+     line-height: 1.7;
 
-    transform: translateY(-2px);
+     color: #666666;
+ }
 
-    box-shadow:
-        0 15px 45px rgba(0, 0, 0, .07);
-}
 
-.discover-search-box:focus-within {
+ /* =====================================================
+   DISCOVER SEARCH
+===================================================== */
 
-    transform: translateY(-2px);
+ .discover-search-wrapper {
+     width: 100%;
 
-    border-color: #444;
+     max-width: 760px;
 
-    box-shadow:
-        0 18px 55px rgba(0, 0, 0, .10);
-}
+     margin-top: 58px;
+ }
 
-.discover-search-icon {
+ .discover-search-box {
+     display: flex;
+     align-items: center;
 
-    font-size: 22px;
+     gap: 16px;
 
-    color: #444;
+     width: 100%;
 
-    flex-shrink: 0;
-}
+     padding: 20px 26px;
 
-.discover-search-input {
+     border-radius: 999px;
 
-    flex: 1;
+     background: rgba(255, 255, 255, 0.92);
 
-    border: none;
+     border: 1.4px solid #111111;
 
-    background: transparent;
+     box-shadow:
+         0 12px 35px rgba(0, 0, 0, 0.05);
 
-    outline: none;
+     transition:
+         transform 0.35s ease,
+         box-shadow 0.35s ease,
+         border-color 0.35s ease,
+         background 0.35s ease;
+ }
 
-    font-family: "Inter", sans-serif;
+ .discover-search-box:hover {
+     transform: translateY(-2px);
 
-    font-size: 17px;
+     background: rgba(255, 255, 255, 0.98);
 
-    color: #111111;
-}
+     box-shadow:
+         0 15px 45px rgba(0, 0, 0, 0.07);
+ }
 
-.discover-search-input::placeholder {
+ .discover-search-box:focus-within {
+     transform: translateY(-2px);
 
-    color: #777;
-}
+     border-color: #444444;
 
-/* Blinking Cursor */
+     background: rgba(255, 255, 255, 0.98);
 
-.cursor {
+     box-shadow:
+         0 18px 55px rgba(0, 0, 0, 0.10);
+ }
 
-    width: 2px;
-    height: 22px;
+ .discover-search-icon {
+     font-size: 22px;
 
-    background: #111;
+     color: #444444;
 
-    border-radius: 999px;
+     flex-shrink: 0;
+ }
 
-    animation: blink .9s infinite;
+ .discover-search-input {
+     flex: 1;
 
-    flex-shrink: 0;
-}
+     min-width: 0;
 
-@keyframes blink {
+     border: none;
 
-    0%,
-    45% {
+     background: transparent;
 
-        opacity: 1;
-    }
+     outline: none;
 
-    50%,
-    100% {
+     font-family: "Inter", sans-serif;
 
-        opacity: 0;
-    }
-}
-/* ---------------- GRID ---------------- */
+     font-size: 17px;
 
-.discover-content {
-    width: 96%;
-    max-width: 1900px;
-    margin: 90px auto 0;
-    /* border: 3px solid red; */
-}
+     color: #111111;
+ }
 
-/* ---------------- CARD ---------------- */
+ .discover-search-input::placeholder {
+     color: #777777;
+ }
 
 
+ /* =====================================================
+   BLINKING CURSOR
+===================================================== */
 
-/* ---------------- INFO ---------------- */
+ .cursor {
+     width: 2px;
+     height: 22px;
 
-.fruit-info{
+     background: #111111;
 
-    padding:24px;
-}
+     border-radius: 999px;
 
-.fruit-info h3{
+     animation: blink 0.9s infinite;
 
-    margin:0;
+     flex-shrink: 0;
+ }
 
-    font-family:"Instrument Serif",serif;
+ @keyframes blink {
 
-    font-size:34px;
+     0%,
+     45% {
+         opacity: 1;
+     }
 
-    color:#111;
-}
+     50%,
+     100% {
+         opacity: 0;
+     }
+ }
 
-.fruit-info p{
 
-    margin-top:8px;
+ /* =====================================================
+   DISCOVER CONTENT / GRID
+===================================================== */
 
-    font-family:"Inter",sans-serif;
+ .discover-content {
+     position: relative;
 
-    color:#777;
+     z-index: 2;
 
-    font-size:15px;
-}
+     width: 96%;
 
-/* ---------------- Responsive ---------------- */
+     max-width: 1900px;
 
-@media(max-width:900px){
+     margin: 90px auto 0;
+ }
 
-    .discover-title{
 
-        font-size:60px;
-    }
+ /* =====================================================
+   SEARCH EMPTY STATE
+===================================================== */
 
-    .masonry-grid{
+ .search-empty {
+     min-height: 180px;
 
-        columns:2 260px;
-    }
-}
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     justify-content: center;
 
-.search-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+     font-family: "Inter", sans-serif;
 
-    min-height: 180px;
+     text-align: center;
+ }
 
-    font-family: "Inter", sans-serif;
+ .search-empty p {
+     margin: 0;
 
-    text-align: center;
-}
+     font-size: 18px;
 
-.search-empty p {
-    margin: 0;
+     color: #444444;
+ }
 
-    font-size: 18px;
+ .search-empty span {
+     margin-top: 8px;
 
-    color: #444;
-}
+     font-size: 14px;
 
-.search-empty span {
-    margin-top: 8px;
+     color: #888888;
+ }
 
-    font-size: 14px;
 
-    color: #888;
-}
+ /* =====================================================
+   OPTIONAL FRUIT INFO
+===================================================== */
 
-@media(max-width:600px){
+ .fruit-info {
+     padding: 24px;
+ }
 
-    .discover-title{
+ .fruit-info h3 {
+     margin: 0;
 
-        font-size:46px;
-    }
+     font-family: "Instrument Serif", serif;
 
-    .discover-subtitle{
+     font-size: 34px;
 
-        font-size:16px;
-    }
+     color: #111111;
+ }
 
-    .masonry-grid{
+ .fruit-info p {
+     margin-top: 8px;
 
-        columns:1;
-    }
+     font-family: "Inter", sans-serif;
 
-    .search-input{
+     color: #777777;
 
-        padding:18px 22px;
-    }
-}
+     font-size: 15px;
+ }
 
+
+ /* =====================================================
+   TABLET
+===================================================== */
+
+ @media (max-width: 900px) {
+
+     .discover-page {
+         background-size: auto 650px;
+     }
+
+     .discover-page::before {
+         height: 650px;
+     }
+
+     .discover-title {
+         font-size: 60px;
+     }
+
+     .masonry-grid {
+         columns: 2 260px;
+     }
+ }
+
+
+ /* =====================================================
+   MOBILE
+===================================================== */
+
+ @media (max-width: 600px) {
+
+     .discover-page {
+         background-size: auto 560px;
+
+         padding-bottom: 70px;
+     }
+
+     .discover-page::before {
+         height: 560px;
+     }
+
+     .discover-hero {
+         padding-top: 115px;
+     }
+
+     .discover-title {
+         font-size: 46px;
+     }
+
+     .discover-subtitle {
+         font-size: 16px;
+     }
+
+     .discover-search-wrapper {
+         margin-top: 42px;
+     }
+
+     .discover-search-box {
+         gap: 12px;
+
+         padding: 16px 20px;
+     }
+
+     .discover-search-icon {
+         font-size: 20px;
+     }
+
+     .discover-search-input {
+         font-size: 15px;
+     }
+
+     .masonry-grid {
+         columns: 1;
+     }
+ }
