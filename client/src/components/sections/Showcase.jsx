@@ -5,47 +5,64 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import fruitBowl from "../../assets/images/fruit-bowl.png";
 
+import orange from "../../assets/images/showcase/orange.png";
+import strawberry from "../../assets/images/showcase/strawberry.png";
+import blueberry from "../../assets/images/showcase/blueberry.png";
+import mango from "../../assets/images/showcase/mango.png";
+import cherry from "../../assets/images/showcase/cherry.png";
+import fig from "../../assets/images/showcase/fig.png";
+import pomegranate from "../../assets/images/showcase/pomegranate.png";
+import grape from "../../assets/images/showcase/grape.png";
+
 gsap.registerPlugin(ScrollTrigger);
 
 const fruitCards = [
   {
     name: "Orange",
     latin: "Citrus sinensis",
+    image: orange,
     className: "card-1",
   },
   {
     name: "Strawberry",
     latin: "Fragaria × ananassa",
+    image: strawberry,
     className: "card-2",
   },
   {
     name: "Blueberry",
     latin: "Vaccinium corymbosum",
+    image: blueberry,
     className: "card-3",
   },
   {
     name: "Mango",
     latin: "Mangifera indica",
+    image: mango,
     className: "card-4",
   },
   {
     name: "Cherry",
     latin: "Prunus avium",
+    image: cherry,
     className: "card-5",
   },
   {
     name: "Fig",
     latin: "Ficus carica",
+    image: fig,
     className: "card-6",
   },
   {
     name: "Pomegranate",
     latin: "Punica granatum",
+    image: pomegranate,
     className: "card-7",
   },
   {
     name: "Grape",
     latin: "Vitis vinifera",
+    image: grape,
     className: "card-8",
   },
 ];
@@ -67,12 +84,8 @@ function Showcase() {
     }
 
     const ctx = gsap.context(() => {
-      // ---------------------------------------------
-      // INITIAL STATES
-      // ---------------------------------------------
-
       gsap.set(heading, {
-        y: 420,
+        y:480,
       });
 
       gsap.set(cards, {
@@ -82,10 +95,6 @@ function Showcase() {
         rotation: 0,
         opacity: 0,
       });
-
-      // ---------------------------------------------
-      // MASTER SCROLL TIMELINE
-      // ---------------------------------------------
 
       const timeline = gsap.timeline({
         scrollTrigger: {
@@ -98,25 +107,14 @@ function Showcase() {
         },
       });
 
-      // ---------------------------------------------
-      // PHASE 1
-      // TITLE EMERGES
-      // ---------------------------------------------
+      // TITLE REVEAL
+      timeline.to(heading, {
+        y: -200,
+        duration: 1.5,
+        ease: "none",
+      });
 
-      timeline.to(
-        heading,
-        {
-          y: -280,
-          duration: 1.5,
-          ease: "none",
-        }
-      );
-
-      // ---------------------------------------------
-      // PHASE 2
-      // FIRST WAVE OF CARDS
-      // ---------------------------------------------
-
+      // FIRST WAVE
       timeline.to(
         cards[0],
         {
@@ -159,11 +157,7 @@ function Showcase() {
         "-=0.5"
       );
 
-      // ---------------------------------------------
-      // PHASE 3
       // SECOND WAVE
-      // ---------------------------------------------
-
       timeline.to(
         cards[3],
         {
@@ -206,11 +200,7 @@ function Showcase() {
         "-=0.4"
       );
 
-      // ---------------------------------------------
-      // PHASE 4
       // STORM
-      // ---------------------------------------------
-
       timeline.to(
         cards[6],
         {
@@ -239,11 +229,7 @@ function Showcase() {
         "-=0.4"
       );
 
-      // ---------------------------------------------
-      // PHASE 5
-      // CARDS FLY AWAY
-      // ---------------------------------------------
-
+      // FINAL SCATTER
       timeline.to(
         cards,
         {
@@ -263,16 +249,13 @@ function Showcase() {
               : 20 + index * 2,
 
           scale: 0.72,
-
           opacity: 0,
 
           duration: 1.25,
-
           ease: "power2.inOut",
         },
         "+=0.15"
       );
-
     }, section);
 
     return () => {
@@ -315,17 +298,27 @@ function Showcase() {
                 }}
                 className={`showcase-card ${fruit.className}`}
               >
-                <span className="showcase-card-label">
-                  Explore
-                </span>
+                <div className="showcase-card-image">
+                  <img
+                    src={fruit.image}
+                    alt={fruit.name}
+                    draggable="false"
+                  />
+                </div>
 
-                <h3>
-                  {fruit.name}
-                </h3>
+                <div className="showcase-card-info">
+                  <span className="showcase-card-label">
+                    Discover
+                  </span>
 
-                <p>
-                  {fruit.latin}
-                </p>
+                  <h3>
+                    {fruit.name}
+                  </h3>
+
+                  <p>
+                    {fruit.latin}
+                  </p>
+                </div>
 
                 <span className="showcase-card-arrow">
                   →
@@ -346,6 +339,7 @@ function Showcase() {
           <img
             src={fruitBowl}
             alt="Ancient Greek fruit bowl"
+            draggable="false"
           />
         </div>
 
