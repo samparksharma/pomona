@@ -6,15 +6,17 @@ import heroImage from "../../assets/images/pomona-hero.png";
 function Hero() {
   return (
     <section
-      className="hero"
-      style={{ backgroundImage: `url(${heroImage})` }}
+      className="home-hero"
+      style={{
+        backgroundImage: `url(${heroImage})`,
+      }}
     >
-      <div className="hero-content">
+      <div className="home-hero-content">
 
-        <div className="hero-left">
+        <div className="home-hero-left">
 
           <motion.h1
-            className="hero-title"
+            className="home-hero-title"
             initial={{
               opacity: 0,
               y: 50,
@@ -36,7 +38,7 @@ function Hero() {
           </motion.h1>
 
           <motion.p
-            className="hero-subtitle"
+            className="home-hero-subtitle"
             initial={{
               opacity: 0,
               x: -40,
@@ -51,11 +53,12 @@ function Hero() {
               ease: [0.22, 1, 0.36, 1],
             }}
           >
-            Nature's encyclopedia, beautifully reimagined.
+            Nature's encyclopedia,
+            beautifully reimagined.
           </motion.p>
 
           <motion.button
-            className="hero-btn"
+            className="home-hero-btn"
             initial={{
               opacity: 0,
               y: 15,
@@ -77,7 +80,7 @@ function Hero() {
 
         </div>
 
-       <div className="hero-right"></div>
+        <div className="home-hero-right"></div>
 
       </div>
     </section>
