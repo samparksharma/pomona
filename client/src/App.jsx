@@ -13,6 +13,8 @@ import FruitDetails from "./pages/FruitDetails";
 import Signup from "./pages/Signup";
 import Newsletter from "./pages/Newsletter";
 
+import SmoothScroll from "./components/layout/SmoothScroll";
+
 function AppContent() {
   const location = useLocation();
 
@@ -89,7 +91,9 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
-      <AppContent />
+      <SmoothScroll>
+        <AppContent />
+      </SmoothScroll>
     </BrowserRouter>
   );
 }

@@ -1,16 +1,46 @@
+@import "lenis/dist/lenis.css";
+
+/* =====================================================
+   RESET
+===================================================== */
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-html {
-    scroll-behavior: smooth;
+
+/* =====================================================
+   LENIS
+===================================================== */
+
+html.lenis,
+html.lenis body {
+    height: auto;
 }
+
+.lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+    overflow: hidden;
+}
+
+
+/* =====================================================
+   GLOBAL
+===================================================== */
 
 body {
     background: var(--bg);
     color: var(--text);
+
     overflow-x: hidden;
 }
 
@@ -28,6 +58,11 @@ img {
     max-width: 100%;
     display: block;
 }
+
+
+/* =====================================================
+   FRUIT DETAILS OVERLAY
+===================================================== */
 
 .fruit-details-overlay {
     position: fixed;
