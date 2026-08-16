@@ -1,0 +1,196 @@
+/* =====================================================
+   POMONA SECTION
+===================================================== */
+
+.pomona-section {
+    position: relative;
+
+    width: 100%;
+    min-height: 100vh;
+
+    overflow: hidden;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #111111;
+
+    perspective: 1200px;
+}
+
+
+/* =====================================================
+   IMAGE
+===================================================== */
+
+.pomona-section-image {
+    position: absolute;
+
+    inset: -7%;
+
+    z-index: 0;
+
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+
+    transform:
+        scale(1.20) translateZ(0);
+
+    transform-style: preserve-3d;
+
+    will-change:
+        transform;
+
+    cursor: default;
+}
+
+
+/* =====================================================
+   OVERLAY
+===================================================== */
+
+.pomona-section-overlay {
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 1;
+
+    background:
+        linear-gradient(90deg,
+            rgba(0, 0, 0, 0.38) 0%,
+            rgba(0, 0, 0, 0.10) 38%,
+            rgba(0, 0, 0, 0.08) 62%,
+            rgba(0, 0, 0, 0.38) 100%);
+
+    pointer-events: none;
+}
+
+
+/* =====================================================
+   TEXT
+===================================================== */
+
+.pomona-section-text {
+    position: absolute;
+
+    top: 50%;
+
+    z-index: 2;
+
+    transform:
+        translateY(-50%);
+
+    font-family:
+        "Instrument Serif",
+        serif;
+
+    font-size:
+        clamp(46px,
+            4.4vw,
+            76px);
+
+    font-weight: 400;
+
+    line-height: 0.95;
+
+    letter-spacing: -0.02em;
+
+    color: #fafaf8;
+
+    text-shadow:
+        0 4px 24px rgba(0, 0, 0, 0.18);
+
+    pointer-events: none;
+
+    will-change: transform;
+}
+
+
+/* =====================================================
+   LEFT
+===================================================== */
+
+.pomona-section-text-left {
+    left: 6%;
+
+    text-align: left;
+}
+
+
+/* =====================================================
+   RIGHT
+===================================================== */
+
+.pomona-section-text-right {
+    right: 6%;
+
+    text-align: right;
+}
+
+
+/* =====================================================
+   TABLET
+===================================================== */
+
+@media (max-width: 900px) {
+
+    .pomona-section-text {
+        font-size: 58px;
+    }
+
+    .pomona-section-text-left {
+        left: 5%;
+    }
+
+    .pomona-section-text-right {
+        right: 5%;
+    }
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 600px) {
+
+    .pomona-section {
+        min-height: 100svh;
+    }
+
+    .pomona-section-image {
+        inset: -5%;
+
+        background-position: center;
+    }
+
+    .pomona-section-overlay {
+        background:
+            linear-gradient(180deg,
+                rgba(0, 0, 0, 0.42) 0%,
+                rgba(0, 0, 0, 0.08) 45%,
+                rgba(0, 0, 0, 0.45) 100%);
+    }
+
+    .pomona-section-text {
+        font-size: 42px;
+    }
+
+    .pomona-section-text-left {
+        top: 22%;
+        left: 7%;
+
+        transform: none;
+    }
+
+    .pomona-section-text-right {
+        top: auto;
+        right: 7%;
+        bottom: 18%;
+
+        transform: none;
+    }
+}

@@ -1,0 +1,440 @@
+/* =====================================================
+   SITE FOOTER
+===================================================== */
+
+.site-footer {
+    position: relative;
+
+    width: 100%;
+
+    height: 420px;
+
+    overflow: hidden;
+
+    background: #0d0d0d;
+
+    color: #fafaf8;
+}
+
+
+/* =====================================================
+   INNER
+===================================================== */
+
+.site-footer-inner {
+    position: relative;
+
+    width: min(1450px, 90%);
+
+    height: 100%;
+
+    margin: 0 auto;
+
+    padding-top: 44px;
+}
+
+
+/* =====================================================
+   TOP
+===================================================== */
+
+.site-footer-top {
+    position: relative;
+
+    z-index: 5;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+}
+
+
+/* =====================================================
+   NAV
+===================================================== */
+
+.site-footer-nav {
+    display: flex;
+
+    align-items: center;
+
+    gap: 34px;
+}
+
+.site-footer-nav a {
+    font-family: "Inter", sans-serif;
+
+    font-size: 12px;
+
+    color:
+        rgba(250,
+            250,
+            248,
+            0.62);
+
+    text-decoration: none;
+
+    transition:
+        color 0.3s ease;
+}
+
+.site-footer-nav a:hover {
+    color: #fafaf8;
+}
+
+
+/* =====================================================
+   SOCIALS
+===================================================== */
+
+.site-footer-socials {
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+}
+
+.site-footer-socials a {
+    width: 28px;
+    height: 28px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color:
+        rgba(250,
+            250,
+            248,
+            0.62);
+
+    text-decoration: none;
+
+    transition:
+        color 0.3s ease,
+        transform 0.3s ease;
+}
+
+.site-footer-socials a svg {
+    width: 15px;
+    height: 15px;
+}
+
+.site-footer-socials a:hover {
+    color: #fafaf8;
+
+    transform:
+        translateY(-2px);
+}
+
+
+/* =====================================================
+   NEWSLETTER
+===================================================== */
+
+.site-footer-newsletter {
+    position: absolute;
+
+    top: 110px;
+
+    right: 0;
+
+    z-index: 5;
+
+    width: min(470px, 42%);
+}
+
+.site-footer-eyebrow {
+    display: block;
+
+    margin-bottom: 14px;
+
+    font-family: "Inter", sans-serif;
+
+    font-size: 10px;
+
+    font-weight: 500;
+
+    letter-spacing: 0.16em;
+
+    text-transform: uppercase;
+
+    color:
+        rgba(250,
+            250,
+            248,
+            0.38);
+}
+
+
+/* =====================================================
+   FORM
+===================================================== */
+
+.site-footer-form {
+    display: flex;
+
+    align-items: center;
+
+    width: 100%;
+
+    padding: 5px;
+
+    border:
+        1px solid rgba(250,
+            250,
+            248,
+            0.14);
+
+    border-radius: 999px;
+
+    background:
+        rgba(250,
+            250,
+            248,
+            0.055);
+
+    transition:
+        border-color 0.3s ease,
+        background 0.3s ease;
+}
+
+.site-footer-form:focus-within {
+    border-color:
+        rgba(250,
+            250,
+            248,
+            0.34);
+
+    background:
+        rgba(250,
+            250,
+            248,
+            0.08);
+}
+
+.site-footer-form input {
+    flex: 1;
+
+    min-width: 0;
+
+    padding:
+        14px 16px;
+
+    border: none;
+
+    outline: none;
+
+    background: transparent;
+
+    color: #fafaf8;
+
+    font-family: "Inter", sans-serif;
+
+    font-size: 13px;
+}
+
+.site-footer-form input::placeholder {
+    color:
+        rgba(250,
+            250,
+            248,
+            0.34);
+}
+
+.site-footer-form button {
+    flex-shrink: 0;
+
+    padding:
+        12px 22px;
+
+    border: none;
+
+    border-radius: 999px;
+
+    background: #fafaf8;
+
+    color: #111;
+
+    font-family: "Inter", sans-serif;
+
+    font-size: 12px;
+
+    font-weight: 500;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.site-footer-form button:hover {
+    transform:
+        translateY(-2px);
+
+    box-shadow:
+        0 8px 22px rgba(250,
+            250,
+            248,
+            0.12);
+}
+
+
+/* =====================================================
+   META
+===================================================== */
+
+.site-footer-meta {
+    position: absolute;
+
+    left: 0;
+    right: 0;
+
+    bottom: 42px;
+
+    z-index: 5;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding-top: 14px;
+
+    border-top:
+        1px solid rgba(250,
+            250,
+            248,
+            0.09);
+
+    font-family: "Inter", sans-serif;
+
+    font-size: 9px;
+
+    letter-spacing: 0.04em;
+
+    color:
+        rgba(250,
+            250,
+            248,
+            0.28);
+}
+
+
+/* =====================================================
+   HUGE WORDMARK
+===================================================== */
+
+.site-footer-wordmark {
+    position: absolute;
+
+    left: 50%;
+
+    bottom: -58px;
+
+    z-index: 1;
+
+    transform:
+        translateX(-50%);
+
+    white-space: nowrap;
+
+    font-family:
+        "Instrument Serif",
+        serif;
+
+    font-size:
+        clamp(170px,
+            23vw,
+            360px);
+
+    font-weight: 400;
+
+    line-height: 0.7;
+
+    letter-spacing: -0.06em;
+
+    color:
+        rgba(250,
+            250,
+            248,
+            0.08);
+
+    pointer-events: none;
+
+    user-select: none;
+}
+
+
+/* =====================================================
+   TABLET
+===================================================== */
+
+@media (max-width: 900px) {
+
+    .site-footer {
+        height: 460px;
+    }
+
+    .site-footer-newsletter {
+        width: 46%;
+    }
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 600px) {
+
+    .site-footer {
+        height: 520px;
+    }
+
+    .site-footer-inner {
+        width: 88%;
+
+        padding-top: 34px;
+    }
+
+    .site-footer-top {
+        align-items: flex-start;
+    }
+
+    .site-footer-nav {
+        gap: 18px;
+
+        flex-wrap: wrap;
+
+        max-width: 220px;
+    }
+
+    .site-footer-socials {
+        gap: 8px;
+    }
+
+    .site-footer-newsletter {
+        top: 145px;
+
+        left: 0;
+        right: 0;
+
+        width: 100%;
+    }
+
+    .site-footer-meta {
+        bottom: 50px;
+    }
+
+    .site-footer-wordmark {
+        bottom: -24px;
+
+        font-size: 125px;
+    }
+}

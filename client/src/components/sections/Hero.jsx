@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-
+import { Link } from "react-router-dom";
 import heroImage from "../../assets/images/pomona-hero.png";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -181,7 +181,12 @@ reveal.fromTo(
               ease: [0.22, 1, 0.36, 1],
             }}
           >
+            <Link
+             to="/discover"
+             className="home-hero-btn"
+            >
             Discover →
+            </Link>
           </motion.button>
 
         </div>
