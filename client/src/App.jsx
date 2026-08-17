@@ -60,20 +60,20 @@ useEffect(() => {
           element={<About />}
         />
 
-        <Route
+        {/* <Route
           path="/login"
           element={<Login />}
-        />
+        /> */}
 
         <Route
           path="/fruit/:id"
           element={<FruitDetails />}
         />
 
-        <Route
+        {/* <Route
           path="/signup"
           element={<Signup />}
-        />
+        /> */}
 
         <Route
           path="/newsletter"

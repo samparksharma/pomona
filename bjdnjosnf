@@ -1,0 +1,101 @@
+[33mcommit 75ac9a280821e510976b14ec6b316ceaa95e14f3[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m
+Author: samparksharma <samparksharma271@gmail.com>
+Date:   Mon Aug 17 11:21:33 2026 +0530
+
+    Implement newsletter subscription and Brevo email
+
+[33mcommit 22571ed6350ead6a1a8c4b8a7f92ac2a302895fc[m
+Author: samparksharma <samparksharma271@gmail.com>
+Date:   Sun Aug 16 17:02:42 2026 +0530
+
+    home page done , all micro interaction and new section and footer has been added
+
+[33mcommit dd6aade37dd21bafb76132b5be9199ff6b70eb4f[m
+Author: samparksharma <samparksharma271@gmail.com>
+Date:   Sun Aug 16 12:09:24 2026 +0530
+
+    lenis smooth scroll implemented also solved showcase hitch
+
+[33mcommit bdccf153d4cb4f20b961af936e983fe475c4036c[m
+Author: samparksharma <samparksharma271@gmail.com>
+Date:   Sun Aug 16 03:23:10 2026 +0530
+
+    Polish Hero reveal and parallax
+
+[33mcommit 29b95501dc2b911253cfb4d56659130b42f51efb[m
+Author: samparksharma <samparksharma271@gmail.com>
+Date:   Sun Aug 16 02:58:53 2026 +0530
+
+    added parallax inn hero section
+
+[33mcommit 31bb57141e929cb9954da2918fabbd78075a2264[m
+Author: samparksharma <samparksharma271@gmail.com>
+Date:   Sun Aug 16 02:45:53 2026 +0530
+
+    Explore section Botanical skull installed
+
+[33mcommit f12814e01199270b9fffcb5171446596f892db68[m
+Author: samparksharma <samparksharma271@gmail.com>
+Date:   Sat Aug 15 23:52:51 2026 +0530
+
+    discover card storm section v2(image added in the card )
+
+[33mcommit 8662325ed0ab0cd14624e02924942d1878fcfb65[m
+Author: samparksharma <samparksharma271@gmail.com>
+Date:   Sat Aug 15 22:26:00 2026 +0530
+
+    discover card storm section v1
+
+[33mcommit 9689de2cd99b564973b642115f90bba52522fb08[m
+Author: samparksharma <samparksharma271@gmail.com>
+Date:   Sat Aug 15 22:01:11 2026 +0530
+
+    Build Showcase bowl and scroll reveal
+
+[33mcommit 63b247fdd0fdbb6c1073bdf54ba5d91460b0824a[m
+Author: samparksharma <samparksharma271@gmail.com>
+Date:   Sat Aug 15 18:40:55 2026 +0530
+
+    overwriting issue in whole site solved(Hero ssection one )
+
+[33mcommit a7e40d380447f65f09653f8b916a7ad87c5fb79d[m
+Author: samparksharma <samparksharma271@gmail.com>
+Date:   Sat Aug 15 18:21:28 2026 +0530
+
+    Finalize Discover page design and functionality
+
+[33mcommit 670e56e3a9724b938872e55ee79dd0ee8204c664[m
+Author: samparksharma <samparksharma271@gmail.com>
+Date:   Sat Aug 15 01:33:39 2026 +0530
+
+    Complete Discover functionality and navigation
+
+[33mcommit cbc8e70bccecbe5c677cada86c45eb16ab988114[m
+Author: samparksharma <samparksharma271@gmail.com>
+Date:   Fri Aug 14 23:33:15 2026 +0530
+
+    all functionality done on the discover page
+
+[33mcommit 7aa4d66fa38ccc47e748426f00ac77fe9a0224f3[m
+Author: samparksharma <samparksharma271@gmail.com>
+Date:   Thu Aug 13 21:25:36 2026 +0530
+
+    Discover search bar working
+
+[33mcommit 2d0dbf38313e3eb9e5f033c0c36f0f30f068a2c3[m
+Author: samparksharma <samparksharma271@gmail.com>
+Date:   Thu Aug 13 18:33:29 2026 +0530
+
+    Complete fruit details and AI encyclopedia pipeline
+
+[33mcommit 835b61b22a6059bfe149bf570db997b99e00bc2a[m
+Author: samparksharma <samparksharma271@gmail.com>
+Date:   Wed Aug 12 04:47:52 2026 +0530
+
+    Gemini integration working
+
+[33mcommit 07b4da5114cb030c91f0bb85fa609b054fa43b93[m
+Author: samparksharma <samparksharma271@gmail.com>
+Date:   Fri Jul 17 20:18:12 2026 +0530
+
+    Initial Pomona project setup

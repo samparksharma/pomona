@@ -295,6 +295,7 @@
 .signup-btn {
     min-width: 110px;
     text-align: center;
+    border: none;
 }
 
 /* ---------------- Light Navbar ---------------- */
