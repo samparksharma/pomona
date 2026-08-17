@@ -17,11 +17,37 @@ app.get("/", (req, res) => {
     res.send("Welcome to Pomona API 🍎");
 });
 
-const PORT = process.env.PORT || 5000;
+// -----------------------------------------
+// ROUTES
+// -----------------------------------------
+
+const fruitRoutes = require(
+    "./routes/FruitRoutes"
+);
+
+const newsletterRoutes = require(
+    "./routes/NewsletterRoutes"
+);
+
+app.use(
+    "/api/fruits",
+    fruitRoutes
+);
+
+app.use(
+    "/api/newsletter",
+    newsletterRoutes
+);
+
+// -----------------------------------------
+// SERVER
+// -----------------------------------------
+
+const PORT =
+    process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(
+        `Server is running on port ${PORT}`
+    );
 });
-
-const fruitRoutes = require("./routes/FruitRoutes");
-app.use("/api/fruits", fruitRoutes);

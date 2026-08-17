@@ -67,7 +67,7 @@ img {
 .fruit-details-overlay {
     position: fixed;
     inset: 0;
-
+    overscroll-behavior: contain;
     z-index: 1000;
 
     width: 100%;
@@ -76,4 +76,15 @@ img {
     overflow-y: auto;
 
     background: #fafaf8;
+}
+
+/* Hide browser scrollbar but keep scrolling */
+
+body.home-route {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+body.home-route::-webkit-scrollbar {
+    display: none;
 }

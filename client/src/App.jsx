@@ -12,7 +12,7 @@ import Login from "./pages/Login";
 import FruitDetails from "./pages/FruitDetails";
 import Signup from "./pages/Signup";
 import Newsletter from "./pages/Newsletter";
-
+import { useEffect } from "react";
 import SmoothScroll from "./components/layout/SmoothScroll";
 
 function AppContent() {
@@ -20,7 +20,20 @@ function AppContent() {
 
   const backgroundLocation =
     location.state?.backgroundLocation;
+useEffect(() => {
+  const isHome = location.pathname === "/";
 
+  document.body.classList.toggle(
+    "home-route",
+    isHome
+  );
+
+  return () => {
+    document.body.classList.remove(
+      "home-route"
+    );
+  };
+}, [location.pathname]);
   return (
     <>
       {/* -----------------------------------------
@@ -77,7 +90,7 @@ function AppContent() {
           <Route
             path="/fruit/:id"
             element={
-              <div className="fruit-details-overlay">
+              <div className="fruit-details-overlay" data-lenis-prevent >
                 <FruitDetails />
               </div>
             }

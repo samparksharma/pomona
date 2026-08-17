@@ -1,0 +1,434 @@
+/* =====================================================
+   NEWSLETTER PAGE
+===================================================== */
+
+.newsletter-page {
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 80px 40px;
+
+    background: #fafaf8;
+
+    overflow: hidden;
+}
+
+
+/* =====================================================
+   CARD
+===================================================== */
+
+.newsletter-card {
+    position: relative;
+
+    width: min(920px, 90vw);
+
+    min-height: 500px;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    overflow: hidden;
+
+    border-radius: 30px;
+
+    background: #101010;
+
+    box-shadow:
+        0 35px 90px rgba(0, 0, 0, 0.22);
+
+    color: #fafaf8;
+
+    will-change: transform;
+}
+
+
+/* =====================================================
+   LEFT / CHARACTER
+===================================================== */
+
+.newsletter-character {
+    position: relative;
+
+    min-height: 500px;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
+
+    padding: 40px;
+
+    background:
+        radial-gradient(circle at center,
+            rgba(255, 255, 255, 0.07),
+            transparent 62%);
+}
+
+.newsletter-character-image {
+    width: min(240px, 70%);
+
+    height: 240px;
+
+    object-fit: cover;
+
+    border-radius: 28px;
+    user-select: none;
+
+    -webkit-user-drag: none;
+
+    filter:
+        drop-shadow(0 70px 70px rgba(0, 0, 0, 0.35));
+}
+
+.newsletter-character-title {
+    margin-top: 22px;
+
+    font-family:
+        "Instrument Serif",
+        serif;
+
+    font-size: 34px;
+
+    font-weight: 400;
+
+    line-height: 0.98;
+
+    letter-spacing: -0.02em;
+
+    text-align: center;
+
+    color: #fafaf8;
+}
+
+
+/* =====================================================
+   RIGHT / CONTENT
+===================================================== */
+
+.newsletter-content {
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+
+    padding: 70px 70px 70px 45px;
+}
+
+.newsletter-eyebrow {
+    display: block;
+
+    margin-bottom: 18px;
+
+    font-family:
+        "Inter",
+        sans-serif;
+
+    font-size: 10px;
+
+    letter-spacing: 0.17em;
+
+    text-transform: uppercase;
+
+    color:
+        rgba(250,
+            250,
+            248,
+            0.42);
+}
+
+.newsletter-heading {
+    margin: 0;
+
+    font-family:
+        "Instrument Serif",
+        serif;
+
+    font-size: 78px;
+
+    font-weight: 400;
+
+    line-height: 0.88;
+
+    letter-spacing: -0.03em;
+
+    color: #fafaf8;
+}
+
+.newsletter-description {
+    max-width: 410px;
+
+    margin-top: 24px;
+
+    font-family:
+        "Inter",
+        sans-serif;
+
+    font-size: 15px;
+
+    line-height: 1.7;
+
+    color:
+        rgba(250,
+            250,
+            248,
+            0.56);
+}
+
+
+/* =====================================================
+   FORM
+===================================================== */
+
+.newsletter-form {
+    display: flex;
+
+    align-items: center;
+
+    width: 100%;
+
+    max-width: 470px;
+
+    margin-top: 38px;
+
+    padding: 5px;
+
+    border:
+        1px solid rgba(250,
+            250,
+            248,
+            0.16);
+
+    border-radius: 999px;
+
+    background:
+        rgba(250,
+            250,
+            248,
+            0.05);
+
+    transition:
+        border-color 0.3s ease,
+        background 0.3s ease;
+}
+
+.newsletter-form:focus-within {
+    border-color:
+        rgba(250,
+            250,
+            248,
+            0.38);
+
+    background:
+        rgba(250,
+            250,
+            248,
+            0.08);
+}
+
+.newsletter-form input {
+    flex: 1;
+
+    min-width: 0;
+
+    padding:
+        15px 17px;
+
+    border: none;
+
+    outline: none;
+
+    background: transparent;
+
+    color: #fafaf8;
+
+    font-family:
+        "Inter",
+        sans-serif;
+
+    font-size: 13px;
+}
+
+.newsletter-form input::placeholder {
+    color:
+        rgba(250,
+            250,
+            248,
+            0.34);
+}
+
+.newsletter-form button {
+    flex-shrink: 0;
+
+    padding:
+        13px 23px;
+
+    border: none;
+
+    border-radius: 999px;
+
+    background: #fafaf8;
+
+    color: #111;
+
+    font-family:
+        "Inter",
+        sans-serif;
+
+    font-size: 12px;
+
+    font-weight: 500;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.newsletter-form button:hover {
+    transform:
+        translateY(-2px);
+
+    box-shadow:
+        0 8px 24px rgba(250,
+            250,
+            248,
+            0.13);
+}
+
+
+/* =====================================================
+   TABLET
+===================================================== */
+
+@media (max-width: 900px) {
+
+    .newsletter-page {
+        padding: 60px 25px;
+    }
+
+    .newsletter-card {
+        grid-template-columns: 1fr;
+
+        min-height: auto;
+    }
+
+    .newsletter-character {
+        min-height: 430px;
+
+        padding: 40px 30px;
+    }
+
+    .newsletter-character-image {
+        width: 240px;
+        height: 240px;
+    }
+
+    .newsletter-content {
+        padding: 50px 45px 60px;
+    }
+
+    .newsletter-heading {
+        font-size: 62px;
+    }
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 600px) {
+
+    .newsletter-page {
+        padding: 25px 16px;
+    }
+
+    .newsletter-card {
+        width: 100%;
+
+        border-radius: 24px;
+    }
+
+    .newsletter-character {
+        min-height: 340px;
+
+        padding: 30px 20px;
+    }
+
+    .newsletter-character-image {
+        width: 200px;
+        height: 200px;
+    }
+
+    .newsletter-character-title {
+        font-size: 28px;
+    }
+
+    .newsletter-content {
+        padding: 40px 25px 45px;
+    }
+
+    .newsletter-heading {
+        font-size: 52px;
+    }
+
+    .newsletter-description {
+        font-size: 14px;
+    }
+
+    .newsletter-form {
+        flex-direction: column;
+
+        align-items: stretch;
+
+        padding: 6px;
+
+        border-radius: 20px;
+    }
+
+    .newsletter-form input {
+        padding: 15px 14px;
+    }
+
+    .newsletter-form button {
+        width: 100%;
+
+        padding: 14px;
+    }
+}
+
+.newsletter-status {
+    margin-top: 12px;
+
+    font-family: "Inter", sans-serif;
+
+    font-size: 12px;
+
+    line-height: 1.4;
+}
+
+.newsletter-status.success {
+    color: #8fd19e;
+}
+
+.newsletter-status.error {
+    color: #e89a9a;
+}
+
+.newsletter-form input:disabled {
+    opacity: 0.55;
+}
+
+.newsletter-form button:disabled {
+    opacity: 0.55;
+
+    cursor: not-allowed;
+
+    transform: none;
+}
