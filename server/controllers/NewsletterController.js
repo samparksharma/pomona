@@ -134,6 +134,105 @@ console.log(
   }
 };
 
+// =========================================
+// UNSUBSCRIBE
+// =========================================
+
+const unsubscribeFromNewsletter = async (
+  req,
+  res
+) => {
+  try {
+    const email = req.body.email
+      ?.trim()
+      .toLowerCase();
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required.",
+      });
+    }
+
+    const subscriber =
+      await NewsletterSubscriber.findOne({
+        email,
+      });
+
+    if (!subscriber) {
+      return res.status(404).json({
+        success: false,
+        message: "Subscriber not found.",
+      });
+    }
+
+    subscriber.status = "unsubscribed";
+
+    await subscriber.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "You have been unsubscribed.",
+    });
+  } catch (error) {
+    console.error(
+      "Newsletter unsubscribe error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message:
+        "Something went wrong while unsubscribing.",
+    });
+  }
+};
+
+// =========================================
+// CHECK NEWSLETTER STATUS
+// =========================================
+
+const getNewsletterStatus = async (
+  req,
+  res
+) => {
+  try {
+    const email = req.query.email
+      ?.trim()
+      .toLowerCase();
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required.",
+      });
+    }
+
+    const subscriber =
+      await NewsletterSubscriber.findOne({
+        email,
+        status: "active",
+      });
+
+    return res.status(200).json({
+      success: true,
+      subscribed: !!subscriber,
+    });
+  } catch (error) {
+    console.error(
+      "Newsletter status error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: "Could not check newsletter status.",
+    });
+  }
+};
+
 module.exports = {
   subscribeToNewsletter,
+  getNewsletterStatus,
+  unsubscribeFromNewsletter,
 };

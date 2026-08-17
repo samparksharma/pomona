@@ -13,17 +13,23 @@ import {
 
 import { motion } from "framer-motion";
 
-import { FiSliders } from "react-icons/fi";
+import {
+  FiSliders,
+  FiLogOut,
+  FiMail,
+  FiX,
+} from "react-icons/fi";
 
 import FruitSearch from "../fruit/FruitSearch";
 import AuthModal from "../auth/AuthModal";
+
+import { useAuth } from "../auth/AuthContext";
 
 function Navbar({
   light = false,
   showBack = false,
   showSearch = false,
 
-  // Discover filter props
   showFilter = false,
   seasons = [],
   selectedSeason = "All",
@@ -35,21 +41,35 @@ function Navbar({
 }) {
   const navigate = useNavigate();
 
-  // =========================================
-  // AUTH MODAL STATE
-  // =========================================
-
-  const [authOpen, setAuthOpen] = useState(false);
-
-  const [authMode, setAuthMode] = useState(
-    "login"
-  );
-
-  // =========================================
-  // FILTER
-  // =========================================
-
   const filterRef = useRef(null);
+  const accountRef = useRef(null);
+
+  // =========================================
+  // AUTH
+  // =========================================
+
+  const {
+    user,
+    isAuthenticated,
+    logout,
+    newsletterSubscribed,
+    newsletterLoading,
+    subscribeToNewsletter,
+    unsubscribeFromNewsletter,
+  } = useAuth();
+
+  const [authOpen, setAuthOpen] =
+    useState(false);
+
+  const [authMode, setAuthMode] =
+    useState("login");
+
+  const [accountOpen, setAccountOpen] =
+    useState(false);
+
+  // =========================================
+  // FILTER OUTSIDE CLICK
+  // =========================================
 
   useEffect(() => {
     if (!showFilter || !filterOpen) {
@@ -84,6 +104,43 @@ function Navbar({
     setFilterOpen,
   ]);
 
+  // =========================================
+  // ACCOUNT OUTSIDE CLICK
+  // =========================================
+
+  useEffect(() => {
+    if (!accountOpen) {
+      return;
+    }
+
+    const handleClickOutside = (event) => {
+      if (
+        accountRef.current &&
+        !accountRef.current.contains(
+          event.target
+        )
+      ) {
+        setAccountOpen(false);
+      }
+    };
+
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
+    };
+  }, [accountOpen]);
+
+  // =========================================
+  // SEASON
+  // =========================================
+
   const handleSeasonSelect = (season) => {
     if (setSelectedSeason) {
       setSelectedSeason(season);
@@ -95,12 +152,64 @@ function Navbar({
   };
 
   // =========================================
-  // OPEN AUTH MODAL
+  // AUTH MODAL
   // =========================================
 
   const openAuth = (mode) => {
     setAuthMode(mode);
     setAuthOpen(true);
+  };
+
+  // =========================================
+  // USER INITIAL
+  // =========================================
+
+  const getInitials = () => {
+    if (!user?.name) {
+      return "?";
+    }
+
+    const parts = user.name
+      .trim()
+      .split(/\s+/);
+
+    if (parts.length === 1) {
+      return parts[0]
+        .charAt(0)
+        .toUpperCase();
+    }
+
+    return (
+      parts[0].charAt(0) +
+      parts[parts.length - 1].charAt(0)
+    ).toUpperCase();
+  };
+
+  // =========================================
+  // NEWSLETTER ACTION
+  // =========================================
+
+  const handleNewsletterToggle =
+    async () => {
+      if (newsletterLoading) {
+        return;
+      }
+
+      if (newsletterSubscribed) {
+        await unsubscribeFromNewsletter();
+      } else {
+        await subscribeToNewsletter();
+      }
+    };
+
+  // =========================================
+  // LOGOUT
+  // =========================================
+
+  const handleLogout = async () => {
+    await logout();
+
+    setAccountOpen(false);
   };
 
   // =========================================
@@ -276,27 +385,109 @@ function Navbar({
             AUTH
         ============================== */}
 
-        <div className="navbar__auth">
-          <button
-            type="button"
-            className="login-btn"
-            onClick={() =>
-              openAuth("login")
-            }
-          >
-            Login
-          </button>
+        {!isAuthenticated ? (
+          <div className="navbar__auth">
+            <button
+              type="button"
+              className="login-btn"
+              onClick={() =>
+                openAuth("login")
+              }
+            >
+              Login
+            </button>
 
-          <button
-            type="button"
-            className="signup-btn"
-            onClick={() =>
-              openAuth("signup")
-            }
+            <button
+              type="button"
+              className="signup-btn"
+              onClick={() =>
+                openAuth("signup")
+              }
+            >
+              Sign Up
+            </button>
+          </div>
+        ) : (
+          <div
+            className="navbar-account"
+            ref={accountRef}
           >
-            Sign Up
-          </button>
-        </div>
+            <button
+              type="button"
+              className="navbar-avatar"
+              onClick={() =>
+                setAccountOpen(
+                  (prev) => !prev
+                )
+              }
+              aria-label="Open account menu"
+              aria-expanded={
+                accountOpen
+              }
+            >
+              {getInitials()}
+            </button>
+
+            <div
+              className={`navbar-account-menu ${
+                accountOpen
+                  ? "open"
+                  : ""
+              }`}
+            >
+              <div className="navbar-account-header">
+                <div className="navbar-account-large-avatar">
+                  {getInitials()}
+                </div>
+
+                <div className="navbar-account-user">
+                  <strong>
+                    {user?.name}
+                  </strong>
+
+                  <span>
+                    {user?.email}
+                  </span>
+                </div>
+              </div>
+
+              <div className="navbar-account-divider" />
+
+              <button
+                type="button"
+                className="navbar-account-action"
+                onClick={
+                  handleNewsletterToggle
+                }
+                disabled={
+                  newsletterLoading
+                }
+              >
+                <FiMail size={15} />
+
+                <span>
+                  {newsletterLoading
+                    ? "Updating..."
+                    : newsletterSubscribed
+                    ? "Unsubscribe from newsletter"
+                    : "Subscribe to newsletter"}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                className="navbar-account-action logout"
+                onClick={handleLogout}
+              >
+                <FiLogOut size={15} />
+
+                <span>
+                  Logout
+                </span>
+              </button>
+            </div>
+          </div>
+        )}
       </motion.nav>
 
       {/* ==============================

@@ -4,13 +4,23 @@ const router = express.Router();
 
 const {
   subscribeToNewsletter,
-} = require(
-  "../controllers/NewsletterController"
-);
+  getNewsletterStatus,
+  unsubscribeFromNewsletter,
+} = require("../controllers/NewsletterController");
 
 router.post(
   "/subscribe",
   subscribeToNewsletter
+);
+
+router.get(
+  "/status",
+  getNewsletterStatus
+);
+
+router.post(
+  "/unsubscribe",
+  unsubscribeFromNewsletter
 );
 
 module.exports = router;

@@ -1,11 +1,13 @@
 import "./AuthModal.css";
 import { useState } from "react";
 import axios from "axios";
+import { useAuth } from "./AuthContext";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 function AuthModal({
   onClose,
   initialMode = "login",
 }) {
+    const { setUser } = useAuth();
   const [mode, setMode] = useState(initialMode);
 
   const [name, setName] = useState("");
@@ -79,6 +81,7 @@ function AuthModal({
           withCredentials: true,
         }
       );
+      setUser(response.data.user);
 
       setStatus({
         type: "success",
