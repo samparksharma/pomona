@@ -7,6 +7,7 @@ const router = express.Router();
 const {
   signup,
   login,
+  refreshSession,
   logout,
   getCurrentUser,
 } = require("../controllers/AuthController");
@@ -22,5 +23,10 @@ router.post("/login", login);
 router.post("/logout", logout);
 
 router.get(  "/me",  protect, getCurrentUser);
+
+router.post(
+  "/refresh",
+  refreshSession
+);
 
 module.exports = router;

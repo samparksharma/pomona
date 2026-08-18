@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+      index: true,
     },
 
     password: {
@@ -23,12 +24,30 @@ const userSchema = new mongoose.Schema(
       required: true,
       minlength: 8,
     },
+
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+
+    passwordChangedAt: {
+      type: Date,
+      default: null,
+    },
+
+    lastLoginAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model(
+  "User",
+  userSchema
+);
 
 module.exports = User;

@@ -12,8 +12,8 @@ const newsletterSubscriberSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["active", "unsubscribed"],
-      default: "active",
+      enum: ["pending", "active", "unsubscribed"],
+      default: "pending",
     },
 
     subscribedAt: {

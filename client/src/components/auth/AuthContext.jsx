@@ -13,40 +13,35 @@ const API_URL = "http://localhost:5000";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-
   const [loading, setLoading] = useState(true);
 
-  const [newsletterSubscribed, setNewsletterSubscribed] =
-    useState(false);
+  const [
+    newsletterSubscribed,
+    setNewsletterSubscribed,
+  ] = useState(false);
 
-  const [newsletterLoading, setNewsletterLoading] =
-    useState(false);
+  const [
+    newsletterLoading,
+    setNewsletterLoading,
+  ] = useState(false);
 
   // =========================================
-  // CHECK AUTH
+  // REFRESH AUTH SESSION
   // =========================================
 
-  const checkAuth = async () => {
+  const refreshSession = async () => {
     try {
-      const response = await axios.get(
-        `${API_URL}/api/auth/me`,
+      await axios.post(
+        `${API_URL}/api/auth/refresh`,
+        {},
         {
           withCredentials: true,
         }
       );
 
-      const currentUser = response.data.user;
-
-      setUser(currentUser);
-
-      await checkNewsletterStatus(
-        currentUser.email
-      );
+      return true;
     } catch (error) {
-      setUser(null);
-      setNewsletterSubscribed(false);
-    } finally {
-      setLoading(false);
+      return false;
     }
   };
 
@@ -66,9 +61,7 @@ export function AuthProvider({ children }) {
       const response = await axios.get(
         `${API_URL}/api/newsletter/status`,
         {
-          params: {
-            email,
-          },
+          params: { email },
         }
       );
 
@@ -82,6 +75,66 @@ export function AuthProvider({ children }) {
       );
 
       setNewsletterSubscribed(false);
+    }
+  };
+
+  // =========================================
+  // GET CURRENT USER
+  // =========================================
+
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/auth/me`,
+        {
+          withCredentials: true,
+        }
+      );
+
+      const currentUser =
+        response.data.user;
+
+      setUser(currentUser);
+
+      await checkNewsletterStatus(
+        currentUser.email
+      );
+
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  // =========================================
+  // CHECK AUTH
+  // =========================================
+
+  const checkAuth = async () => {
+    setLoading(true);
+
+    try {
+      // First try the current access token.
+      const authenticated =
+        await fetchCurrentUser();
+
+      if (authenticated) {
+        return;
+      }
+
+      // Access token may have expired.
+      // Try the refresh session.
+      const refreshed =
+        await refreshSession();
+
+      if (refreshed) {
+        await fetchCurrentUser();
+      } else {
+        setUser(null);
+        setNewsletterSubscribed(false);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -122,22 +175,33 @@ export function AuthProvider({ children }) {
   // =========================================
 
   const subscribeToNewsletter = async () => {
-    if (!user?.email) return;
+    if (!user?.email) {
+      return;
+    }
 
     setNewsletterLoading(true);
 
     try {
-      await axios.post(
+      const response = await axios.post(
         `${API_URL}/api/newsletter/subscribe`,
         {
           email: user.email,
         }
       );
 
-      setNewsletterSubscribed(true);
+      /*
+       * IMPORTANT:
+       * Double opt-in means the user is NOT
+       * active yet. They still need to confirm
+       * the email.
+       */
+      setNewsletterSubscribed(false);
 
       return {
         success: true,
+        message:
+          response.data.message ||
+          "Check your email to confirm your subscription.",
       };
     } catch (error) {
       console.error(
@@ -162,22 +226,28 @@ export function AuthProvider({ children }) {
 
   const unsubscribeFromNewsletter =
     async () => {
-      if (!user?.email) return;
+      if (!user?.email) {
+        return;
+      }
 
       setNewsletterLoading(true);
 
       try {
-        await axios.post(
-          `${API_URL}/api/newsletter/unsubscribe`,
-          {
-            email: user.email,
-          }
-        );
+        const response =
+          await axios.post(
+            `${API_URL}/api/newsletter/unsubscribe`,
+            {
+              email: user.email,
+            }
+          );
 
         setNewsletterSubscribed(false);
 
         return {
           success: true,
+          message:
+            response.data.message ||
+            "You have been unsubscribed.",
         };
       } catch (error) {
         console.error(
@@ -211,6 +281,8 @@ export function AuthProvider({ children }) {
         logout,
 
         checkAuth,
+        refreshSession,
+        fetchCurrentUser,
         checkNewsletterStatus,
 
         subscribeToNewsletter,

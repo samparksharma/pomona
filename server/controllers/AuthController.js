@@ -1,21 +1,152 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 
 const User = require("../models/User");
+const Session = require("../models/Session");
 
 // =========================================
-// CREATE JWT
+// CONFIG
 // =========================================
 
-const createToken = (userId) => {
+const ACCESS_TOKEN_LIFETIME = "15m";
+
+const REFRESH_TOKEN_LIFETIME =
+  15 * 24 * 60 * 60 * 1000;
+
+// =========================================
+// COOKIE OPTIONS
+// =========================================
+
+const getCookieOptions = () => {
+  const isProduction =
+    process.env.NODE_ENV === "production";
+
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction
+      ? "none"
+      : "lax",
+    path: "/",
+  };
+};
+
+// =========================================
+// CREATE ACCESS JWT
+// =========================================
+
+const createAccessToken = (
+  userId,
+  sessionId
+) => {
   return jwt.sign(
     {
       userId,
+      sessionId,
+      type: "access",
     },
     process.env.JWT_SECRET,
     {
-      expiresIn: "7d",
+      expiresIn: ACCESS_TOKEN_LIFETIME,
     }
+  );
+};
+
+// =========================================
+// CREATE RANDOM REFRESH TOKEN
+// =========================================
+
+const createRefreshToken = () => {
+  return crypto.randomBytes(64).toString("hex");
+};
+
+// =========================================
+// HASH SESSION TOKEN
+// =========================================
+
+const hashSessionToken = (token) => {
+  return crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+};
+
+// =========================================
+// CREATE SESSION
+// =========================================
+
+const createSession = async (userId) => {
+  const refreshToken =
+    createRefreshToken();
+
+  const sessionTokenHash =
+    hashSessionToken(refreshToken);
+
+  const expiresAt = new Date(
+    Date.now() +
+      REFRESH_TOKEN_LIFETIME
+  );
+
+  const session =
+    await Session.create({
+      sessionTokenHash,
+      user: userId,
+      expiresAt,
+    });
+
+  return {
+    session,
+    refreshToken,
+  };
+};
+
+// =========================================
+// SET AUTH COOKIES
+// =========================================
+
+const setAuthCookies = (
+  res,
+  accessToken,
+  refreshToken
+) => {
+  const options = getCookieOptions();
+
+  res.cookie(
+    "accessToken",
+    accessToken,
+    {
+      ...options,
+      maxAge: 15 * 60 * 1000,
+    }
+  );
+
+  res.cookie(
+    "refreshToken",
+    refreshToken,
+    {
+      ...options,
+      maxAge:
+        REFRESH_TOKEN_LIFETIME,
+    }
+  );
+};
+
+// =========================================
+// CLEAR AUTH COOKIES
+// =========================================
+
+const clearAuthCookies = (res) => {
+  const options = getCookieOptions();
+
+  res.clearCookie(
+    "accessToken",
+    options
+  );
+
+  res.clearCookie(
+    "refreshToken",
+    options
   );
 };
 
@@ -25,33 +156,47 @@ const createToken = (userId) => {
 
 const signup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const {
+      name,
+      email,
+      password,
+    } = req.body;
 
     // -----------------------------
     // VALIDATE INPUT
     // -----------------------------
 
-    if (!name || !email || !password) {
+    if (
+      !name ||
+      !email ||
+      !password
+    ) {
       return res.status(400).json({
         success: false,
-        message: "All fields are required.",
+        message:
+          "All fields are required.",
       });
     }
 
-    const cleanName = name.trim();
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanName =
+      name.trim();
+
+    const cleanEmail =
+      email.trim().toLowerCase();
 
     if (cleanName.length < 2) {
       return res.status(400).json({
         success: false,
-        message: "Name must be at least 2 characters.",
+        message:
+          "Name must be at least 2 characters.",
       });
     }
 
     if (password.length < 8) {
       return res.status(400).json({
         success: false,
-        message: "Password must be at least 8 characters.",
+        message:
+          "Password must be at least 8 characters.",
       });
     }
 
@@ -59,9 +204,10 @@ const signup = async (req, res) => {
     // CHECK EMAIL
     // -----------------------------
 
-    const existingUser = await User.findOne({
-      email: cleanEmail,
-    });
+    const existingUser =
+      await User.findOne({
+        email: cleanEmail,
+      });
 
     if (existingUser) {
       return res.status(409).json({
@@ -75,44 +221,54 @@ const signup = async (req, res) => {
     // HASH PASSWORD
     // -----------------------------
 
-    const hashedPassword = await bcrypt.hash(
-      password,
-      12
-    );
+    const hashedPassword =
+      await bcrypt.hash(
+        password,
+        12
+      );
 
     // -----------------------------
     // CREATE USER
     // -----------------------------
 
-    const user = await User.create({
-      name: cleanName,
-      email: cleanEmail,
-      password: hashedPassword,
-    });
+    const user =
+      await User.create({
+        name: cleanName,
+        email: cleanEmail,
+        password: hashedPassword,
+        lastLoginAt: new Date(),
+      });
 
     // -----------------------------
-    // CREATE JWT
+    // CREATE SESSION
     // -----------------------------
 
-    const token = createToken(
-      user._id.toString()
+    const {
+      session,
+      refreshToken,
+    } = await createSession(
+      user._id
     );
 
     // -----------------------------
-    // STORE JWT IN HTTPONLY COOKIE
+    // CREATE ACCESS TOKEN
     // -----------------------------
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure:
-        process.env.NODE_ENV === "production",
-      sameSite:
-        process.env.NODE_ENV === "production"
-          ? "none"
-          : "lax",
-      maxAge:
-        7 * 24 * 60 * 60 * 1000,
-    });
+    const accessToken =
+      createAccessToken(
+        user._id.toString(),
+        session._id.toString()
+      );
+
+    // -----------------------------
+    // SET COOKIES
+    // -----------------------------
+
+    setAuthCookies(
+      res,
+      accessToken,
+      refreshToken
+    );
 
     // -----------------------------
     // RESPONSE
@@ -120,7 +276,8 @@ const signup = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "Account created successfully.",
+      message:
+        "Account created successfully.",
       user: {
         id: user._id,
         name: user.name,
@@ -128,7 +285,10 @@ const signup = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Signup error:", error);
+    console.error(
+      "Signup error:",
+      error
+    );
 
     return res.status(500).json({
       success: false,
@@ -144,13 +304,19 @@ const signup = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const {
+      email,
+      password,
+    } = req.body;
 
     // -----------------------------
-    // VALIDATE INPUT
+    // VALIDATE
     // -----------------------------
 
-    if (!email || !password) {
+    if (
+      !email ||
+      !password
+    ) {
       return res.status(400).json({
         success: false,
         message:
@@ -165,14 +331,19 @@ const login = async (req, res) => {
     // FIND USER
     // -----------------------------
 
-    const user = await User.findOne({
-      email: cleanEmail,
-    });
+    const user =
+      await User.findOne({
+        email: cleanEmail,
+      });
 
-    if (!user) {
+    if (
+      !user ||
+      !user.isActive
+    ) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password.",
+        message:
+          "Invalid email or password.",
       });
     }
 
@@ -189,33 +360,50 @@ const login = async (req, res) => {
     if (!passwordMatches) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password.",
+        message:
+          "Invalid email or password.",
       });
     }
 
     // -----------------------------
-    // CREATE JWT
+    // UPDATE LOGIN TIME
     // -----------------------------
 
-    const token = createToken(
-      user._id.toString()
+    user.lastLoginAt =
+      new Date();
+
+    await user.save();
+
+    // -----------------------------
+    // CREATE SESSION
+    // -----------------------------
+
+    const {
+      session,
+      refreshToken,
+    } = await createSession(
+      user._id
     );
 
     // -----------------------------
-    // STORE JWT
+    // CREATE ACCESS TOKEN
     // -----------------------------
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure:
-        process.env.NODE_ENV === "production",
-      sameSite:
-        process.env.NODE_ENV === "production"
-          ? "none"
-          : "lax",
-      maxAge:
-        7 * 24 * 60 * 60 * 1000,
-    });
+    const accessToken =
+      createAccessToken(
+        user._id.toString(),
+        session._id.toString()
+      );
+
+    // -----------------------------
+    // SET COOKIES
+    // -----------------------------
+
+    setAuthCookies(
+      res,
+      accessToken,
+      refreshToken
+    );
 
     // -----------------------------
     // RESPONSE
@@ -223,7 +411,8 @@ const login = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Login successful.",
+      message:
+        "Login successful.",
       user: {
         id: user._id,
         name: user.name,
@@ -231,7 +420,10 @@ const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Login error:", error);
+    console.error(
+      "Login error:",
+      error
+    );
 
     return res.status(500).json({
       success: false,
@@ -242,40 +434,203 @@ const login = async (req, res) => {
 };
 
 // =========================================
+// REFRESH SESSION
+// =========================================
+
+const refreshSession = async (
+  req,
+  res
+) => {
+  try {
+    const refreshToken =
+      req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        success: false,
+        message:
+          "Refresh session not found.",
+      });
+    }
+
+    const sessionTokenHash =
+      hashSessionToken(
+        refreshToken
+      );
+
+    const session =
+      await Session.findOne({
+        sessionTokenHash,
+      }).populate("user");
+
+    if (!session) {
+      clearAuthCookies(res);
+
+      return res.status(401).json({
+        success: false,
+        message:
+          "Invalid refresh session.",
+      });
+    }
+
+    // -----------------------------
+    // CHECK SESSION
+    // -----------------------------
+
+    if (
+      session.revokedAt ||
+      session.expiresAt <=
+        new Date() ||
+      !session.user ||
+      !session.user.isActive
+    ) {
+      clearAuthCookies(res);
+
+      return res.status(401).json({
+        success: false,
+        message:
+          "Refresh session expired.",
+      });
+    }
+
+    // -----------------------------
+    // ROTATE REFRESH TOKEN
+    // -----------------------------
+
+    const newRefreshToken =
+      createRefreshToken();
+
+    const newHash =
+      hashSessionToken(
+        newRefreshToken
+      );
+
+    session.sessionTokenHash =
+      newHash;
+
+    session.expiresAt =
+      new Date(
+        Date.now() +
+          REFRESH_TOKEN_LIFETIME
+      );
+
+    await session.save();
+
+    // -----------------------------
+    // CREATE NEW ACCESS TOKEN
+    // -----------------------------
+
+    const newAccessToken =
+      createAccessToken(
+        session.user._id.toString(),
+        session._id.toString()
+      );
+
+    // -----------------------------
+    // SET NEW COOKIES
+    // -----------------------------
+
+    setAuthCookies(
+      res,
+      newAccessToken,
+      newRefreshToken
+    );
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Session refreshed.",
+    });
+  } catch (error) {
+    console.error(
+      "Refresh session error:",
+      error
+    );
+
+    clearAuthCookies(res);
+
+    return res.status(401).json({
+      success: false,
+      message:
+        "Could not refresh session.",
+    });
+  }
+};
+
+// =========================================
 // LOGOUT
 // =========================================
 
-const logout = (req, res) => {
-  res.clearCookie("token", {
-    httpOnly: true,
-    secure:
-      process.env.NODE_ENV === "production",
-    sameSite:
-      process.env.NODE_ENV === "production"
-        ? "none"
-        : "lax",
-  });
+const logout = async (
+  req,
+  res
+) => {
+  try {
+    const refreshToken =
+      req.cookies.refreshToken;
 
-  return res.status(200).json({
-    success: true,
-    message: "Logged out successfully.",
-  });
+    if (refreshToken) {
+      const sessionTokenHash =
+        hashSessionToken(
+          refreshToken
+        );
+
+      await Session.findOneAndUpdate(
+        {
+          sessionTokenHash,
+          revokedAt: null,
+        },
+        {
+          revokedAt: new Date(),
+        }
+      );
+    }
+
+    clearAuthCookies(res);
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Logged out successfully.",
+    });
+  } catch (error) {
+    console.error(
+      "Logout error:",
+      error
+    );
+
+    clearAuthCookies(res);
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Logged out successfully.",
+    });
+  }
 };
 
 // =========================================
 // GET CURRENT USER
 // =========================================
 
-const getCurrentUser = async (req, res) => {
+const getCurrentUser = async (
+  req,
+  res
+) => {
   try {
-    const user = await User.findById(
-      req.user.userId
-    ).select("-password");
+    const user =
+      await User.findById(
+        req.user.userId
+      ).select("-password");
 
-    if (!user) {
-      return res.status(404).json({
+    if (
+      !user ||
+      !user.isActive
+    ) {
+      return res.status(401).json({
         success: false,
-        message: "User not found.",
+        message:
+          "User is not authenticated.",
       });
     }
 
@@ -291,7 +646,8 @@ const getCurrentUser = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Could not retrieve user.",
+      message:
+        "Could not retrieve user.",
     });
   }
 };
@@ -303,6 +659,7 @@ const getCurrentUser = async (req, res) => {
 module.exports = {
   signup,
   login,
+  refreshSession,
   logout,
   getCurrentUser,
 };
