@@ -3,7 +3,11 @@ import "./Navbar.css";
 import logoLight from "../../assets/images/logo.svg";
 import logoDark from "../../assets/images/logo-dark.svg";
 
-import { Link, useNavigate } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 
 import {
   useEffect,
@@ -17,7 +21,7 @@ import {
   FiSliders,
   FiLogOut,
   FiMail,
-  FiX,
+  FiTrash2,
 } from "react-icons/fi";
 
 import FruitSearch from "../fruit/FruitSearch";
@@ -40,6 +44,7 @@ function Navbar({
   logoLinksHome = true,
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const filterRef = useRef(null);
   const accountRef = useRef(null);
@@ -52,8 +57,12 @@ function Navbar({
     user,
     isAuthenticated,
     logout,
+    deleteAccount,
+
     newsletterSubscribed,
+    newsletterPending,
     newsletterLoading,
+
     subscribeToNewsletter,
     unsubscribeFromNewsletter,
   } = useAuth();
@@ -66,6 +75,31 @@ function Navbar({
 
   const [accountOpen, setAccountOpen] =
     useState(false);
+
+  const [newsletterToast, setNewsletterToast] =
+    useState("");
+
+  // =========================================
+  // DELETE ACCOUNT STATE
+  // =========================================
+
+  const [deleteOpen, setDeleteOpen] =
+    useState(false);
+
+  const [
+    deletePassword,
+    setDeletePassword,
+  ] = useState("");
+
+  const [
+    deleteLoading,
+    setDeleteLoading,
+  ] = useState(false);
+
+  const [
+    deleteMessage,
+    setDeleteMessage,
+  ] = useState("");
 
   // =========================================
   // FILTER OUTSIDE CLICK
@@ -113,7 +147,9 @@ function Navbar({
       return;
     }
 
-    const handleClickOutside = (event) => {
+    const handleClickOutside = (
+      event
+    ) => {
       if (
         accountRef.current &&
         !accountRef.current.contains(
@@ -137,11 +173,54 @@ function Navbar({
     };
   }, [accountOpen]);
 
+  useEffect(() => {
+  if (!accountOpen) {
+    return;
+  }
+
+  const handleClickOutside = (event) => {
+    if (
+      accountRef.current &&
+      !accountRef.current.contains(event.target)
+    ) {
+      setAccountOpen(false);
+    }
+  };
+
+  document.addEventListener(
+    "mousedown",
+    handleClickOutside
+  );
+
+  return () => {
+    document.removeEventListener(
+      "mousedown",
+      handleClickOutside
+    );
+  };
+}, [accountOpen]);
+
+//////////////
+useEffect(() => {
+  if (location.state?.openLogin) {
+    setAuthMode("login");
+    setAuthOpen(true);
+
+    window.history.replaceState(
+      {},
+      document.title,
+      window.location.pathname
+    );
+  }
+}, [location.state]);
+
   // =========================================
   // SEASON
   // =========================================
 
-  const handleSeasonSelect = (season) => {
+  const handleSeasonSelect = (
+    season
+  ) => {
     if (setSelectedSeason) {
       setSelectedSeason(season);
     }
@@ -161,7 +240,7 @@ function Navbar({
   };
 
   // =========================================
-  // USER INITIAL
+  // USER INITIALS
   // =========================================
 
   const getInitials = () => {
@@ -186,19 +265,83 @@ function Navbar({
   };
 
   // =========================================
-  // NEWSLETTER ACTION
+  // TOAST
+  // =========================================
+
+  const showNewsletterToast = (
+    message,
+    duration = 4000
+  ) => {
+    setNewsletterToast(message);
+
+    window.setTimeout(() => {
+      setNewsletterToast("");
+    }, duration);
+  };
+
+  // =========================================
+  // NEWSLETTER
   // =========================================
 
   const handleNewsletterToggle =
     async () => {
-      if (newsletterLoading) {
+      if (
+        newsletterLoading ||
+        newsletterPending
+      ) {
         return;
       }
 
+      // -----------------------------
+      // UNSUBSCRIBE
+      // -----------------------------
+
       if (newsletterSubscribed) {
-        await unsubscribeFromNewsletter();
-      } else {
+        const result =
+          await unsubscribeFromNewsletter();
+
+        if (result?.success) {
+          showNewsletterToast(
+            "You have been unsubscribed."
+          );
+
+          setAccountOpen(false);
+        } else if (result?.message) {
+          showNewsletterToast(
+            result.message
+          );
+        }
+
+        return;
+      }
+
+      // -----------------------------
+      // SUBSCRIBE
+      // -----------------------------
+
+      const result =
         await subscribeToNewsletter();
+
+      if (result?.success) {
+        showNewsletterToast(
+          "Check your email to confirm your subscription.",
+          5000
+        );
+      } else if (
+        result?.alreadySubscribed
+      ) {
+        showNewsletterToast(
+          "You're already subscribed."
+        );
+      } else if (result?.pending) {
+        showNewsletterToast(
+          "Check your email to confirm your subscription.",
+          5000
+        );
+      } else if (result?.message) {
+        showNewsletterToast(
+          result.message
+        );
       }
     };
 
@@ -210,6 +353,80 @@ function Navbar({
     await logout();
 
     setAccountOpen(false);
+    setNewsletterToast("");
+  };
+
+  // =========================================
+  // OPEN DELETE MODAL
+  // =========================================
+
+  const openDeleteAccount = () => {
+    setAccountOpen(false);
+
+    setDeletePassword("");
+    setDeleteMessage("");
+
+    setDeleteOpen(true);
+  };
+
+  // =========================================
+  // CLOSE DELETE MODAL
+  // =========================================
+
+  const closeDeleteAccount = () => {
+    if (deleteLoading) {
+      return;
+    }
+
+    setDeleteOpen(false);
+    setDeletePassword("");
+    setDeleteMessage("");
+  };
+
+  // =========================================
+  // DELETE ACCOUNT
+  // =========================================
+
+  const handleDeleteAccount = async () => {
+    if (!deletePassword.trim()) {
+      setDeleteMessage(
+        "Enter your password to continue."
+      );
+      return;
+    }
+
+    if (deleteLoading) {
+      return;
+    }
+
+    setDeleteLoading(true);
+    setDeleteMessage("");
+
+    try {
+      const result =
+        await deleteAccount(
+          deletePassword
+        );
+
+      if (result?.success) {
+        setDeleteOpen(false);
+        setAccountOpen(false);
+        setDeletePassword("");
+        setDeleteMessage("");
+
+        showNewsletterToast(
+          "Your account has been deleted.",
+          4000
+        );
+      } else {
+        setDeleteMessage(
+          result?.message ||
+            "Could not delete your account."
+        );
+      }
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   // =========================================
@@ -220,7 +437,9 @@ function Navbar({
     <>
       <motion.nav
         className={`navbar ${
-          light ? "navbar-light" : ""
+          light
+            ? "navbar-light"
+            : ""
         }`}
         initial={{
           opacity: 0,
@@ -235,10 +454,14 @@ function Navbar({
         transition={{
           delay: 1.0,
           duration: 0.7,
-          ease: [0.22, 1, 0.36, 1],
+          ease: [
+            0.22,
+            1,
+            0.36,
+            1,
+          ],
         }}
       >
-
         {/* ==============================
             LEFT
         ============================== */}
@@ -263,7 +486,9 @@ function Navbar({
                   )
                 }
               >
-                <FiSliders size={16} />
+                <FiSliders
+                  size={16}
+                />
 
                 <span>
                   Filter
@@ -283,34 +508,42 @@ function Navbar({
                     : ""
                 }`}
               >
-                {seasons.map((season) => {
-                  const Icon =
-                    season.icon;
+                {seasons.map(
+                  (season) => {
+                    const Icon =
+                      season.icon;
 
-                  return (
-                    <button
-                      key={season.name}
-                      type="button"
-                      className={`navbar-season-option ${
-                        selectedSeason ===
-                        season.name
-                          ? "active"
-                          : ""
-                      }`}
-                      onClick={() =>
-                        handleSeasonSelect(
+                    return (
+                      <button
+                        key={
                           season.name
-                        )
-                      }
-                    >
-                      <Icon size={17} />
+                        }
+                        type="button"
+                        className={`navbar-season-option ${
+                          selectedSeason ===
+                          season.name
+                            ? "active"
+                            : ""
+                        }`}
+                        onClick={() =>
+                          handleSeasonSelect(
+                            season.name
+                          )
+                        }
+                      >
+                        <Icon
+                          size={17}
+                        />
 
-                      <span>
-                        {season.name}
-                      </span>
-                    </button>
-                  );
-                })}
+                        <span>
+                          {
+                            season.name
+                          }
+                        </span>
+                      </button>
+                    );
+                  }
+                )}
               </div>
             </div>
           )}
@@ -322,6 +555,7 @@ function Navbar({
                 onClick={() =>
                   navigate(-1)
                 }
+                type="button"
               >
                 ←
               </button>
@@ -435,6 +669,8 @@ function Navbar({
                   : ""
               }`}
             >
+              {/* ACCOUNT HEADER */}
+
               <div className="navbar-account-header">
                 <div className="navbar-account-large-avatar">
                   {getInitials()}
@@ -453,6 +689,8 @@ function Navbar({
 
               <div className="navbar-account-divider" />
 
+              {/* NEWSLETTER */}
+
               <button
                 type="button"
                 className="navbar-account-action"
@@ -460,29 +698,58 @@ function Navbar({
                   handleNewsletterToggle
                 }
                 disabled={
-                  newsletterLoading
+                  newsletterLoading ||
+                  newsletterPending
                 }
               >
-                <FiMail size={15} />
+                <FiMail
+                  size={15}
+                />
 
                 <span>
                   {newsletterLoading
                     ? "Updating..."
                     : newsletterSubscribed
                     ? "Unsubscribe from newsletter"
+                    : newsletterPending
+                    ? "Confirmation email sent"
                     : "Subscribe to newsletter"}
                 </span>
               </button>
 
+              {/* LOGOUT */}
+
               <button
                 type="button"
                 className="navbar-account-action logout"
-                onClick={handleLogout}
+                onClick={
+                  handleLogout
+                }
               >
-                <FiLogOut size={15} />
+                <FiLogOut
+                  size={15}
+                />
 
                 <span>
                   Logout
+                </span>
+              </button>
+
+              {/* DELETE */}
+
+              <button
+                type="button"
+                className="navbar-account-action danger"
+                onClick={
+                  openDeleteAccount
+                }
+              >
+                <FiTrash2
+                  size={15}
+                />
+
+                <span>
+                  Delete account
                 </span>
               </button>
             </div>
@@ -501,6 +768,124 @@ function Navbar({
             setAuthOpen(false)
           }
         />
+      )}
+
+      {/* ==============================
+          DELETE ACCOUNT MODAL
+      ============================== */}
+
+      {deleteOpen && (
+        <div
+          className="auth-overlay"
+          onClick={
+            closeDeleteAccount
+          }
+        >
+          <div
+            className="auth-card"
+            onClick={(event) =>
+              event.stopPropagation()
+            }
+          >
+            <button
+              className="auth-close"
+              type="button"
+              onClick={
+                closeDeleteAccount
+              }
+              aria-label="Close delete account dialog"
+            >
+              ×
+            </button>
+
+            <span className="auth-eyebrow">
+              Account
+            </span>
+
+            <h2 className="auth-title">
+              Delete your account?
+            </h2>
+
+            <p className="auth-description">
+              This permanently deletes
+              your Pomona account and
+              revokes your active sessions.
+              This action cannot be undone.
+            </p>
+
+            <div className="auth-form">
+              <input
+                className="auth-input"
+                type="password"
+                placeholder="Your password"
+                value={deletePassword}
+                onChange={(event) =>
+                  setDeletePassword(
+                    event.target.value
+                  )
+                }
+                disabled={
+                  deleteLoading
+                }
+                autoComplete="current-password"
+              />
+
+              {deleteMessage && (
+                <p className="auth-status error">
+                  {deleteMessage}
+                </p>
+              )}
+
+              <button
+                className="auth-submit"
+                type="button"
+                onClick={
+                  handleDeleteAccount
+                }
+                disabled={
+                  deleteLoading
+                }
+              >
+                {deleteLoading
+                  ? "Deleting..."
+                  : "Delete Account"}
+              </button>
+
+              <button
+                className="auth-switch"
+                type="button"
+                onClick={
+                  closeDeleteAccount
+                }
+                disabled={
+                  deleteLoading
+                }
+              >
+                Keep my account
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==============================
+          NEWSLETTER / GENERAL TOAST
+      ============================== */}
+
+      {newsletterToast && (
+        <div
+          className="newsletter-toast"
+          role="status"
+          aria-live="polite"
+        >
+          <FiMail
+            size={16}
+          />
+
+          <span>
+            {newsletterToast}
+          </span>
+        </div>
       )}
     </>
   );

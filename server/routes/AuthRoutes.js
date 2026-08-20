@@ -2,11 +2,14 @@ const express = require("express");
 
 const router = express.Router();
 
-
-
 const {
   signup,
   login,
+  verifyEmail,
+  resendVerification,
+  forgotPassword,
+  resetPassword,
+  deleteAccount,
   refreshSession,
   logout,
   getCurrentUser,
@@ -16,17 +19,69 @@ const protect = require(
   "../middleware/authMiddleware"
 );
 
-router.post("/signup", signup);
+const {
+  authLimiter,
+  refreshLimiter,
+} = require(
+  "../middleware/rateLimitMiddleware"
+);
 
-router.post("/login", login);
+router.post(
+  "/signup",
+  authLimiter,
+  signup
+);
 
-router.post("/logout", logout);
+router.post(
+  "/login",
+  authLimiter,
+  login
+);
 
-router.get(  "/me",  protect, getCurrentUser);
+router.get(
+  "/verify-email",
+  verifyEmail
+);
+
+router.post(
+  "/resend-verification",
+  authLimiter,
+  resendVerification
+);
+
+router.post(
+  "/forgot-password",
+  authLimiter,
+  forgotPassword
+);
+
+router.post(
+  "/reset-password",
+  authLimiter,
+  resetPassword
+);
 
 router.post(
   "/refresh",
+  refreshLimiter,
   refreshSession
+);
+
+router.post(
+  "/logout",
+  logout
+);
+
+router.delete(
+  "/account",
+  protect,
+  deleteAccount
+);
+
+router.get(
+  "/me",
+  protect,
+  getCurrentUser
 );
 
 module.exports = router;

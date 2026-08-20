@@ -560,3 +560,41 @@
 
     cursor: not-allowed;
 }
+
+.newsletter-toast {
+    position: fixed;
+
+    right: 28px;
+    bottom: 28px;
+
+    z-index: 10000;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    max-width: 360px;
+
+    padding: 13px 16px;
+
+    border: 1px solid rgba(17, 17, 17, 0.08);
+    border-radius: 999px;
+
+    background: #111111;
+    color: #fafaf8;
+
+    box-shadow:
+        0 14px 35px rgba(0, 0, 0, 0.16);
+
+    font-family: "Inter", sans-serif;
+    font-size: 12px;
+}
+
+.navbar-account-action.danger {
+    color: #9b4444;
+}
+
+.navbar-account-action.danger:hover {
+    background: #f7eaea;
+    color: #8d2f2f;
+}

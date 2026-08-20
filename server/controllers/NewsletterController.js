@@ -4,7 +4,10 @@ const NewsletterSubscriber = require(
   "../models/NewsletterSubscriber"
 );
 
-const BREVO_API_URL = "https://api.brevo.com/v3";
+const User = require("../models/User");
+
+const BREVO_API_URL =
+  "https://api.brevo.com/v3";
 
 const brevoHeaders = {
   "api-key": process.env.BREVO_API_KEY,
@@ -13,7 +16,7 @@ const brevoHeaders = {
 };
 
 // =========================================
-// SUBSCRIBE — DOUBLE OPT-IN
+// SUBSCRIBE — PUBLIC + DOUBLE OPT-IN
 // =========================================
 
 const subscribeToNewsletter = async (
@@ -24,10 +27,6 @@ const subscribeToNewsletter = async (
     const email = req.body.email
       ?.trim()
       .toLowerCase();
-
-    // -----------------------------------------
-    // VALIDATE EMAIL
-    // -----------------------------------------
 
     if (!email) {
       return res.status(400).json({
@@ -48,7 +47,7 @@ const subscribeToNewsletter = async (
     }
 
     // -----------------------------------------
-    // CHECK MONGODB
+    // FIND LOCAL RECORD
     // -----------------------------------------
 
     let subscriber =
@@ -56,19 +55,57 @@ const subscribeToNewsletter = async (
         email,
       });
 
-    // Already confirmed
-    if (
-      subscriber &&
-      subscriber.status === "active"
-    ) {
+    // -----------------------------------------
+    // CHECK BREVO ACTUAL LIST MEMBERSHIP
+    // -----------------------------------------
+
+    let actuallySubscribed = false;
+
+    try {
+      const brevoResponse = await axios.get(
+        `${BREVO_API_URL}/contacts/${encodeURIComponent(
+          email
+        )}`,
+        {
+          headers: brevoHeaders,
+        }
+      );
+
+      const listIds =
+        brevoResponse.data.listIds || [];
+
+      actuallySubscribed =
+        listIds.includes(
+          Number(process.env.BREVO_LIST_ID)
+        );
+    } catch (brevoError) {
+      if (
+        brevoError.response?.status !== 404
+      ) {
+        throw brevoError;
+      }
+    }
+
+    // -----------------------------------------
+    // REALLY SUBSCRIBED?
+    // -----------------------------------------
+
+    if (actuallySubscribed) {
+      if (subscriber) {
+        subscriber.status = "active";
+        await subscriber.save();
+      }
+
       return res.status(409).json({
         success: false,
-        message: "You're already subscribed.",
+        subscribed: true,
+        message:
+          "You're already subscribed.",
       });
     }
 
     // -----------------------------------------
-    // REQUEST BREVO DOUBLE OPT-IN
+    // SEND DOUBLE OPT-IN EMAIL
     // -----------------------------------------
 
     await axios.post(
@@ -77,7 +114,9 @@ const subscribeToNewsletter = async (
         email,
 
         includeListIds: [
-          Number(process.env.BREVO_LIST_ID),
+          Number(
+            process.env.BREVO_LIST_ID
+          ),
         ],
 
         templateId: Number(
@@ -93,7 +132,7 @@ const subscribeToNewsletter = async (
     );
 
     // -----------------------------------------
-    // CREATE / UPDATE LOCAL RECORD
+    // SAVE PENDING STATE
     // -----------------------------------------
 
     if (!subscriber) {
@@ -104,17 +143,13 @@ const subscribeToNewsletter = async (
         });
     } else {
       subscriber.status = "pending";
-
       await subscriber.save();
     }
 
-    // -----------------------------------------
-    // RESPONSE
-    // -----------------------------------------
-
     return res.status(201).json({
       success: true,
-      status: "pending",
+      subscribed: false,
+      pending: true,
       message:
         "Check your email to confirm your subscription.",
     });
@@ -134,7 +169,7 @@ const subscribeToNewsletter = async (
 };
 
 // =========================================
-// CHECK NEWSLETTER STATUS
+// CHECK CURRENT USER NEWSLETTER STATUS
 // =========================================
 
 const getNewsletterStatus = async (
@@ -142,20 +177,26 @@ const getNewsletterStatus = async (
   res
 ) => {
   try {
-    const email = req.query.email
-      ?.trim()
-      .toLowerCase();
+    const user = await User.findById(
+      req.user.userId
+    ).select("_id email");
 
-    if (!email) {
-      return res.status(400).json({
+    if (!user) {
+      return res.status(401).json({
         success: false,
-        message: "Email is required.",
+        message:
+          "User is not authenticated.",
       });
     }
 
-    // -----------------------------------------
-    // ASK BREVO FOR THE REAL CONTACT STATUS
-    // -----------------------------------------
+    const email = user.email;
+
+    const subscriber =
+      await NewsletterSubscriber.findOne({
+        email,
+      });
+
+    let isSubscribed = false;
 
     try {
       const response = await axios.get(
@@ -170,43 +211,41 @@ const getNewsletterStatus = async (
       const listIds =
         response.data.listIds || [];
 
-      const isSubscribed =
+      isSubscribed =
         listIds.includes(
           Number(process.env.BREVO_LIST_ID)
         );
-
-      // Keep local database synchronized
-      const subscriber =
-        await NewsletterSubscriber.findOne({
-          email,
-        });
-
-      if (subscriber) {
-        subscriber.status =
-          isSubscribed
-            ? "active"
-            : "unsubscribed";
-
-        await subscriber.save();
-      }
-
-      return res.status(200).json({
-        success: true,
-        subscribed: isSubscribed,
-      });
     } catch (brevoError) {
-      // Brevo returns 404 when the contact doesn't exist.
       if (
-        brevoError.response?.status === 404
+        brevoError.response?.status !== 404
       ) {
-        return res.status(200).json({
-          success: true,
-          subscribed: false,
-        });
+        throw brevoError;
+      }
+    }
+
+    // -----------------------------------------
+    // SYNC LOCAL DATABASE
+    // -----------------------------------------
+
+    if (subscriber) {
+      if (isSubscribed) {
+        subscriber.status = "active";
+      } else if (
+        subscriber.status !== "pending"
+      ) {
+        subscriber.status = "unsubscribed";
       }
 
-      throw brevoError;
+      await subscriber.save();
     }
+
+    return res.status(200).json({
+      success: true,
+      subscribed: isSubscribed,
+      pending:
+        !isSubscribed &&
+        subscriber?.status === "pending",
+    });
   } catch (error) {
     console.error(
       "Newsletter status error:",
@@ -223,79 +262,75 @@ const getNewsletterStatus = async (
 };
 
 // =========================================
-// UNSUBSCRIBE
+// UNSUBSCRIBE — AUTHENTICATED USER ONLY
 // =========================================
 
-const unsubscribeFromNewsletter = async (
-  req,
-  res
-) => {
-  try {
-    const email = req.body.email
-      ?.trim()
-      .toLowerCase();
+const unsubscribeFromNewsletter =
+  async (req, res) => {
+    try {
+      const user = await User.findById(
+        req.user.userId
+      ).select("_id email");
 
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: "Email is required.",
-      });
-    }
-
-    // -----------------------------------------
-    // REMOVE FROM BREVO LIST
-    // -----------------------------------------
-
-    await axios.post(
-      `${BREVO_API_URL}/contacts/lists/${
-        process.env.BREVO_LIST_ID
-      }/contacts/remove`,
-      {
-        emails: [email],
-      },
-      {
-        headers: brevoHeaders,
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message:
+            "User is not authenticated.",
+        });
       }
-    );
 
-    // -----------------------------------------
-    // UPDATE LOCAL DATABASE
-    // -----------------------------------------
+      const email = user.email;
 
-    const subscriber =
-      await NewsletterSubscriber.findOne({
-        email,
+      // ---------------------------------------
+      // REMOVE FROM BREVO LIST
+      // ---------------------------------------
+
+      await axios.post(
+        `${BREVO_API_URL}/contacts/lists/${process.env.BREVO_LIST_ID}/contacts/remove`,
+        {
+          emails: [email],
+        },
+        {
+          headers: brevoHeaders,
+        }
+      );
+
+      // ---------------------------------------
+      // UPDATE LOCAL DATABASE
+      // ---------------------------------------
+
+      const subscriber =
+        await NewsletterSubscriber.findOne({
+          email,
+        });
+
+      if (subscriber) {
+        subscriber.status =
+          "unsubscribed";
+
+        await subscriber.save();
+      }
+
+      return res.status(200).json({
+        success: true,
+        message:
+          "You have been unsubscribed.",
       });
+    } catch (error) {
+      console.error(
+        "Newsletter unsubscribe error:",
+        error.response?.data ||
+          error.message
+      );
 
-    if (subscriber) {
-      subscriber.status = "unsubscribed";
-
-      await subscriber.save();
+      return res.status(500).json({
+        success: false,
+        message:
+          "Something went wrong while unsubscribing.",
+      });
     }
-
-    return res.status(200).json({
-      success: true,
-      message:
-        "You have been unsubscribed.",
-    });
-  } catch (error) {
-    console.error(
-      "Newsletter unsubscribe error:",
-      error.response?.data ||
-        error.message
-    );
-
-    return res.status(500).json({
-      success: false,
-      message:
-        "Something went wrong while unsubscribing.",
-    });
-  }
-};
-
-// =========================================
-// EXPORT
-// =========================================
+  };
 
 module.exports = {
   subscribeToNewsletter,

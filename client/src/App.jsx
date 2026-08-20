@@ -5,14 +5,17 @@ import {
   useLocation,
 } from "react-router-dom";
 
+import { useEffect } from "react";
+
 import Home from "./pages/Home";
 import Discover from "./pages/Discover";
 import About from "./pages/About";
-import Login from "./pages/Login";
 import FruitDetails from "./pages/FruitDetails";
-import Signup from "./pages/Signup";
 import Newsletter from "./pages/Newsletter";
-import { useEffect } from "react";
+
+import VerifyEmail from "./pages/VerifyEmail";
+import ResetPassword from "./pages/ResetPassword";
+
 import SmoothScroll from "./components/layout/SmoothScroll";
 
 function AppContent() {
@@ -20,29 +23,29 @@ function AppContent() {
 
   const backgroundLocation =
     location.state?.backgroundLocation;
-useEffect(() => {
-  const isHome = location.pathname === "/";
 
-  document.body.classList.toggle(
-    "home-route",
-    isHome
-  );
+  useEffect(() => {
+    const isHome =
+      location.pathname === "/";
 
-  return () => {
-    document.body.classList.remove(
-      "home-route"
+    document.body.classList.toggle(
+      "home-route",
+      isHome
     );
-  };
-}, [location.pathname]);
+
+    return () => {
+      document.body.classList.remove(
+        "home-route"
+      );
+    };
+  }, [location.pathname]);
+
   return (
     <>
-      {/* -----------------------------------------
-          BACKGROUND ROUTES
-      ----------------------------------------- */}
-
       <Routes
         location={
-          backgroundLocation || location
+          backgroundLocation ||
+          location
         }
       >
         <Route
@@ -60,37 +63,40 @@ useEffect(() => {
           element={<About />}
         />
 
-        {/* <Route
-          path="/login"
-          element={<Login />}
-        /> */}
-
         <Route
           path="/fruit/:id"
           element={<FruitDetails />}
         />
 
-        {/* <Route
-          path="/signup"
-          element={<Signup />}
-        /> */}
-
         <Route
           path="/newsletter"
           element={<Newsletter />}
         />
-      </Routes>
 
-      {/* -----------------------------------------
-          OVERLAY ROUTE
-      ----------------------------------------- */}
+        {/* EMAIL VERIFICATION */}
+
+        <Route
+          path="/verify-email"
+          element={<VerifyEmail />}
+        />
+
+        {/* PASSWORD RESET */}
+
+        <Route
+          path="/reset-password"
+          element={<ResetPassword />}
+        />
+      </Routes>
 
       {backgroundLocation && (
         <Routes>
           <Route
             path="/fruit/:id"
             element={
-              <div className="fruit-details-overlay" data-lenis-prevent >
+              <div
+                className="fruit-details-overlay"
+                data-lenis-prevent
+              >
                 <FruitDetails />
               </div>
             }

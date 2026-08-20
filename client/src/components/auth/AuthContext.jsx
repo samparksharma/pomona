@@ -21,12 +21,17 @@ export function AuthProvider({ children }) {
   ] = useState(false);
 
   const [
+    newsletterPending,
+    setNewsletterPending,
+  ] = useState(false);
+
+  const [
     newsletterLoading,
     setNewsletterLoading,
   ] = useState(false);
 
   // =========================================
-  // REFRESH AUTH SESSION
+  // REFRESH SESSION
   // =========================================
 
   const refreshSession = async () => {
@@ -49,32 +54,47 @@ export function AuthProvider({ children }) {
   // CHECK NEWSLETTER STATUS
   // =========================================
 
-  const checkNewsletterStatus = async (
-    email
-  ) => {
-    if (!email) {
-      setNewsletterSubscribed(false);
-      return;
-    }
-
+  const checkNewsletterStatus = async () => {
     try {
       const response = await axios.get(
         `${API_URL}/api/newsletter/status`,
         {
-          params: { email },
+          withCredentials: true,
         }
       );
 
-      setNewsletterSubscribed(
-        response.data.subscribed
-      );
+      const subscribed =
+        response.data.subscribed;
+
+      const pending =
+        response.data.pending;
+
+      setNewsletterSubscribed(subscribed);
+
+      if (subscribed) {
+        setNewsletterPending(false);
+      } else if (pending) {
+        setNewsletterPending(true);
+      } else {
+        setNewsletterPending(false);
+      }
+
+      return subscribed;
     } catch (error) {
-      console.error(
-        "Newsletter status error:",
-        error
-      );
+      /*
+       * A 401 here simply means there is no
+       * authenticated user/session yet.
+       */
+      if (error.response?.status !== 401) {
+        console.error(
+          "Newsletter status error:",
+          error
+        );
+      }
 
       setNewsletterSubscribed(false);
+
+      return false;
     }
   };
 
@@ -96,9 +116,7 @@ export function AuthProvider({ children }) {
 
       setUser(currentUser);
 
-      await checkNewsletterStatus(
-        currentUser.email
-      );
+      await checkNewsletterStatus();
 
       return true;
     } catch (error) {
@@ -114,7 +132,6 @@ export function AuthProvider({ children }) {
     setLoading(true);
 
     try {
-      // First try the current access token.
       const authenticated =
         await fetchCurrentUser();
 
@@ -122,8 +139,6 @@ export function AuthProvider({ children }) {
         return;
       }
 
-      // Access token may have expired.
-      // Try the refresh session.
       const refreshed =
         await refreshSession();
 
@@ -132,6 +147,7 @@ export function AuthProvider({ children }) {
       } else {
         setUser(null);
         setNewsletterSubscribed(false);
+        setNewsletterPending(false);
       }
     } finally {
       setLoading(false);
@@ -167,16 +183,47 @@ export function AuthProvider({ children }) {
     } finally {
       setUser(null);
       setNewsletterSubscribed(false);
+      setNewsletterPending(false);
     }
   };
 
   // =========================================
-  // SUBSCRIBE
+  // SUBSCRIBE TO NEWSLETTER
   // =========================================
 
   const subscribeToNewsletter = async () => {
     if (!user?.email) {
-      return;
+      return {
+        success: false,
+        message:
+          "You must be logged in.",
+      };
+    }
+
+    if (newsletterLoading) {
+      return {
+        success: false,
+        message:
+          "Please wait.",
+      };
+    }
+
+    if (newsletterSubscribed) {
+      return {
+        success: false,
+        alreadySubscribed: true,
+        message:
+          "You're already subscribed.",
+      };
+    }
+
+    if (newsletterPending) {
+      return {
+        success: false,
+        pending: true,
+        message:
+          "Check your email to confirm your subscription.",
+      };
     }
 
     setNewsletterLoading(true);
@@ -186,28 +233,42 @@ export function AuthProvider({ children }) {
         `${API_URL}/api/newsletter/subscribe`,
         {
           email: user.email,
+        },
+        {
+          withCredentials: true,
         }
       );
 
-      /*
-       * IMPORTANT:
-       * Double opt-in means the user is NOT
-       * active yet. They still need to confirm
-       * the email.
-       */
       setNewsletterSubscribed(false);
+      setNewsletterPending(true);
 
       return {
         success: true,
+        pending: true,
         message:
           response.data.message ||
           "Check your email to confirm your subscription.",
       };
     } catch (error) {
-      console.error(
-        "Newsletter subscribe error:",
-        error
-      );
+      /*
+       * Backend can return 409 when Brevo says
+       * the email is already subscribed.
+       */
+      if (
+        error.response?.status === 409 &&
+        error.response?.data?.subscribed
+      ) {
+        setNewsletterSubscribed(true);
+        setNewsletterPending(false);
+
+        return {
+          success: false,
+          alreadySubscribed: true,
+          message:
+            error.response.data.message ||
+            "You're already subscribed.",
+        };
+      }
 
       return {
         success: false,
@@ -221,13 +282,25 @@ export function AuthProvider({ children }) {
   };
 
   // =========================================
-  // UNSUBSCRIBE
+  // UNSUBSCRIBE FROM NEWSLETTER
   // =========================================
 
   const unsubscribeFromNewsletter =
     async () => {
-      if (!user?.email) {
-        return;
+      if (!user) {
+        return {
+          success: false,
+          message:
+            "You must be logged in.",
+        };
+      }
+
+      if (newsletterLoading) {
+        return {
+          success: false,
+          message:
+            "Please wait.",
+        };
       }
 
       setNewsletterLoading(true);
@@ -236,12 +309,14 @@ export function AuthProvider({ children }) {
         const response =
           await axios.post(
             `${API_URL}/api/newsletter/unsubscribe`,
+            {},
             {
-              email: user.email,
+              withCredentials: true,
             }
           );
 
         setNewsletterSubscribed(false);
+        setNewsletterPending(false);
 
         return {
           success: true,
@@ -250,11 +325,6 @@ export function AuthProvider({ children }) {
             "You have been unsubscribed.",
         };
       } catch (error) {
-        console.error(
-          "Newsletter unsubscribe error:",
-          error
-        );
-
         return {
           success: false,
           message:
@@ -266,6 +336,57 @@ export function AuthProvider({ children }) {
       }
     };
 
+  // =========================================
+  // DELETE ACCOUNT
+  // =========================================
+
+  const deleteAccount = async (
+    password
+  ) => {
+    if (!password?.trim()) {
+      return {
+        success: false,
+        message:
+          "Password is required.",
+      };
+    }
+
+    try {
+      const response =
+        await axios.delete(
+          `${API_URL}/api/auth/account`,
+          {
+            data: {
+              password,
+            },
+            withCredentials: true,
+          }
+        );
+
+      setUser(null);
+      setNewsletterSubscribed(false);
+      setNewsletterPending(false);
+
+      return {
+        success: true,
+        message:
+          response.data.message ||
+          "Your account has been deleted.",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "Could not delete your account.",
+      };
+    }
+  };
+
+  // =========================================
+  // PROVIDER
+  // =========================================
+
   return (
     <AuthContext.Provider
       value={{
@@ -274,11 +395,13 @@ export function AuthProvider({ children }) {
         isAuthenticated: !!user,
 
         newsletterSubscribed,
+        newsletterPending,
         newsletterLoading,
 
         setUser,
 
         logout,
+        deleteAccount,
 
         checkAuth,
         refreshSession,
