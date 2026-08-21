@@ -1,6 +1,5 @@
 import {
   useEffect,
-  useRef,
   useState,
 } from "react";
 
@@ -11,12 +10,15 @@ import {
 
 import axios from "axios";
 
-function VerifyEmail() {
-  const [searchParams] =
-    useSearchParams();
+import {
+  FiCheck,
+  FiX,
+} from "react-icons/fi";
 
-  const hasVerified =
-    useRef(false);
+function VerifyEmail() {
+  const [
+    searchParams,
+  ] = useSearchParams();
 
   const [status, setStatus] =
     useState("verifying");
@@ -27,13 +29,7 @@ function VerifyEmail() {
     );
 
   useEffect(() => {
-    // Prevent React StrictMode from
-    // sending the single-use token twice.
-    if (hasVerified.current) {
-      return;
-    }
-
-    hasVerified.current = true;
+    let cancelled = false;
 
     const verifyEmail = async () => {
       const token =
@@ -44,9 +40,11 @@ function VerifyEmail() {
 
       if (!token || !email) {
         setStatus("error");
+
         setMessage(
           "This verification link is invalid."
         );
+
         return;
       }
 
@@ -59,48 +57,106 @@ function VerifyEmail() {
                 token,
                 email,
               },
-              withCredentials: true,
             }
           );
+
+        if (cancelled) {
+          return;
+        }
 
         setStatus("success");
 
         setMessage(
-          response.data.message ||
-            "Your email has been verified successfully."
+          response.data
+            ?.message ||
+            "Email verified successfully."
         );
-
-        // The backend creates the auth session
-        // after verification, so reload the app.
-        // AuthContext will detect the cookies
-        // and restore the user automatically.
-        window.setTimeout(() => {
-          window.location.href = "/";
-        }, 900);
       } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
         setStatus("error");
 
         setMessage(
-          error.response?.data?.message ||
+          error.response?.data
+            ?.message ||
             "This verification link is invalid or expired."
         );
       }
     };
 
     verifyEmail();
+
+    return () => {
+      cancelled = true;
+    };
   }, [searchParams]);
 
   return (
-    <main className="newsletter-confirmed">
-      <div className="newsletter-confirmed-card">
+    <main
+      className="newsletter-confirmed"
+    >
+      <div
+        className="newsletter-confirmed-card"
+        style={{
+          textAlign: "center",
+        }}
+      >
+        <div
+          style={{
+            width: 56,
+            height: 56,
+            margin:
+              "0 auto 20px",
+            borderRadius:
+              "50%",
+            display: "flex",
+            alignItems:
+              "center",
+            justifyContent:
+              "center",
+            background:
+              status === "success"
+                ? "#e9f4ea"
+                : status ===
+                  "error"
+                ? "#f7eaea"
+                : "#eeeeeb",
+            color:
+              status === "success"
+                ? "#4f8a5b"
+                : status ===
+                  "error"
+                ? "#9b4444"
+                : "#555",
+          }}
+        >
+          {status ===
+          "success" ? (
+            <FiCheck
+              size={23}
+            />
+          ) : status ===
+            "error" ? (
+            <FiX
+              size={23}
+            />
+          ) : (
+            "..."
+          )}
+        </div>
+
         <span className="newsletter-confirmed-eyebrow">
           Pomona
         </span>
 
         <h1>
-          {status === "verifying"
+          {status ===
+          "verifying"
             ? "Verifying..."
-            : status === "success"
+            : status ===
+              "success"
             ? "You're verified."
             : "Verification failed."}
         </h1>
@@ -109,7 +165,27 @@ function VerifyEmail() {
           {message}
         </p>
 
-        {status === "error" && (
+        {status ===
+          "success" && (
+          <p
+            style={{
+              marginTop:
+                "18px",
+              color:
+                "rgba(250,250,248,0.55)",
+              fontSize:
+                "12px",
+            }}
+          >
+            You can close this tab.
+            Your original Pomona
+            window will sign you in
+            automatically.
+          </p>
+        )}
+
+        {status ===
+          "error" && (
           <Link to="/">
             Back to Pomona
           </Link>

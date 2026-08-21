@@ -6,20 +6,19 @@ const axios = require("axios");
 const User = require("../models/User");
 const Session = require("../models/Session");
 
-// =========================================
-// CONFIG
-// =========================================
-
 const ACCESS_TOKEN_LIFETIME = "15m";
 
 const REFRESH_TOKEN_LIFETIME =
   15 * 24 * 60 * 60 * 1000;
 
 const EMAIL_VERIFICATION_LIFETIME =
-  24 * 60 * 60 * 1000; // 24 hours
+  24 * 60 * 60 * 1000;
+
+const VERIFICATION_WATCHER_LIFETIME =
+  30 * 60 * 1000;
 
 const PASSWORD_RESET_LIFETIME =
-  15 * 60 * 1000; // 15 minutes
+  15 * 60 * 1000;
 
 const BREVO_API_URL =
   "https://api.brevo.com/v3";
@@ -41,7 +40,9 @@ const getCookieOptions = () => {
   return {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
+    sameSite: isProduction
+      ? "none"
+      : "lax",
     path: "/",
   };
 };
@@ -67,12 +68,16 @@ const createAccessToken = (
   );
 };
 
-const createRefreshToken = () => {
-  return crypto.randomBytes(64).toString("hex");
+const createRandomToken = () => {
+  return crypto
+    .randomBytes(32)
+    .toString("hex");
 };
 
-const createOneTimeToken = () => {
-  return crypto.randomBytes(32).toString("hex");
+const createRefreshToken = () => {
+  return crypto
+    .randomBytes(64)
+    .toString("hex");
 };
 
 const hashToken = (token) => {
@@ -82,22 +87,25 @@ const hashToken = (token) => {
     .digest("hex");
 };
 
+// =========================================
+// SESSION
+// =========================================
+
 const createSession = async (userId) => {
   const refreshToken =
     createRefreshToken();
 
-  const sessionTokenHash =
-    hashToken(refreshToken);
-
-  const expiresAt = new Date(
-    Date.now() + REFRESH_TOKEN_LIFETIME
-  );
-
   const session =
     await Session.create({
-      sessionTokenHash,
+      sessionTokenHash:
+        hashToken(refreshToken),
+
       user: userId,
-      expiresAt,
+
+      expiresAt: new Date(
+        Date.now() +
+          REFRESH_TOKEN_LIFETIME
+      ),
     });
 
   return {
@@ -106,37 +114,51 @@ const createSession = async (userId) => {
   };
 };
 
-// =========================================
-// COOKIE HELPERS
-// =========================================
-
 const setAuthCookies = (
   res,
   accessToken,
   refreshToken
 ) => {
-  const options = getCookieOptions();
+  const options =
+    getCookieOptions();
 
-  res.cookie("accessToken", accessToken, {
-    ...options,
-    maxAge: 15 * 60 * 1000,
-  });
+  res.cookie(
+    "accessToken",
+    accessToken,
+    {
+      ...options,
+      maxAge: 15 * 60 * 1000,
+    }
+  );
 
-  res.cookie("refreshToken", refreshToken, {
-    ...options,
-    maxAge: REFRESH_TOKEN_LIFETIME,
-  });
+  res.cookie(
+    "refreshToken",
+    refreshToken,
+    {
+      ...options,
+      maxAge:
+        REFRESH_TOKEN_LIFETIME,
+    }
+  );
 };
 
 const clearAuthCookies = (res) => {
-  const options = getCookieOptions();
+  const options =
+    getCookieOptions();
 
-  res.clearCookie("accessToken", options);
-  res.clearCookie("refreshToken", options);
+  res.clearCookie(
+    "accessToken",
+    options
+  );
+
+  res.clearCookie(
+    "refreshToken",
+    options
+  );
 };
 
 // =========================================
-// SEND EMAIL
+// EMAIL
 // =========================================
 
 const sendEmail = async ({
@@ -148,7 +170,9 @@ const sendEmail = async ({
     `${BREVO_API_URL}/smtp/email`,
     {
       sender: {
-        email: process.env.BREVO_SENDER_EMAIL,
+        email:
+          process.env.BREVO_SENDER_EMAIL,
+
         name:
           process.env.BREVO_SENDER_NAME ||
           "Pomona",
@@ -167,16 +191,20 @@ const sendEmail = async ({
 };
 
 // =========================================
-// EMAIL VERIFICATION
+// CREATE VERIFICATION TOKENS
 // =========================================
 
-const sendVerificationEmail = async (
+const prepareVerificationTokens = async (
   user
 ) => {
-  const rawToken = createOneTimeToken();
+  const emailToken =
+    createRandomToken();
+
+  const watcherToken =
+    createRandomToken();
 
   user.emailVerificationTokenHash =
-    hashToken(rawToken);
+    hashToken(emailToken);
 
   user.emailVerificationExpiresAt =
     new Date(
@@ -184,7 +212,36 @@ const sendVerificationEmail = async (
         EMAIL_VERIFICATION_LIFETIME
     );
 
+  user.verificationWatcherTokenHash =
+    hashToken(watcherToken);
+
+  user.verificationWatcherExpiresAt =
+    new Date(
+      Date.now() +
+        VERIFICATION_WATCHER_LIFETIME
+    );
+
   await user.save();
+
+  return {
+    emailToken,
+    watcherToken,
+  };
+};
+
+// =========================================
+// SEND VERIFICATION EMAIL
+// =========================================
+
+const sendVerificationEmail = async (
+  user
+) => {
+  const {
+    emailToken,
+  } =
+    await prepareVerificationTokens(
+      user
+    );
 
   const clientUrl = (
     process.env.CLIENT_URL ||
@@ -193,7 +250,7 @@ const sendVerificationEmail = async (
 
   const verificationUrl =
     `${clientUrl}/verify-email?token=${encodeURIComponent(
-      rawToken
+      emailToken
     )}&email=${encodeURIComponent(
       user.email
     )}`;
@@ -218,7 +275,7 @@ const sendVerificationEmail = async (
           font-size: 11px;
           letter-spacing: 2px;
           text-transform: uppercase;
-          color: #888;
+          color: #888888;
           margin-bottom: 18px;
         ">
           Pomona
@@ -238,8 +295,8 @@ const sendVerificationEmail = async (
           font-size: 15px;
         ">
           Thanks for joining Pomona.
-          Click the button below to verify
-          your email address.
+          Click below to verify your email
+          address.
         </p>
 
         <a
@@ -261,24 +318,65 @@ const sendVerificationEmail = async (
 
         <p style="
           margin-top: 30px;
-          color: #777;
+          color: #777777;
           font-size: 12px;
           line-height: 1.6;
         ">
           This link expires in 24 hours.
           If you didn't create this account,
-          you can ignore this email.
+          you can safely ignore this email.
         </p>
       </div>
     `,
   });
+
+  return {
+    watcherToken:
+      await getWatcherToken(user),
+  };
+};
+
+// =========================================
+// GET WATCHER TOKEN
+// =========================================
+
+const getWatcherToken = async (
+  user
+) => {
+  /*
+   * We don't store the raw watcher token.
+   * To return it immediately after signup,
+   * we generate a fresh token and replace the
+   * previous hash.
+   *
+   * This helper is only used when resending.
+   */
+
+  const watcherToken =
+    createRandomToken();
+
+  user.verificationWatcherTokenHash =
+    hashToken(watcherToken);
+
+  user.verificationWatcherExpiresAt =
+    new Date(
+      Date.now() +
+        VERIFICATION_WATCHER_LIFETIME
+    );
+
+  await user.save();
+
+  return watcherToken;
 };
 
 // =========================================
 // SIGNUP
 // =========================================
 
-const signup = async (req, res) => {
+const signup = async (
+  req,
+  res
+) => {
   try {
     const {
       name,
@@ -304,19 +402,14 @@ const signup = async (req, res) => {
     const cleanEmail =
       email.trim().toLowerCase();
 
-    if (cleanName.length < 2) {
+    if (
+      cleanName.length < 2 ||
+      cleanName.length > 50
+    ) {
       return res.status(400).json({
         success: false,
         message:
-          "Name must be at least 2 characters.",
-      });
-    }
-
-    if (cleanName.length > 50) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Name must be 50 characters or less.",
+          "Name must be between 2 and 50 characters.",
       });
     }
 
@@ -342,25 +435,140 @@ const signup = async (req, res) => {
     }
 
     const hashedPassword =
-      await bcrypt.hash(password, 12);
+      await bcrypt.hash(
+        password,
+        12
+      );
 
     const user =
       await User.create({
         name: cleanName,
         email: cleanEmail,
         password: hashedPassword,
-        lastLoginAt: null,
         emailVerified: false,
+        lastLoginAt: null,
       });
 
-    // Send verification email.
-    // If email delivery fails, remove the
-    // newly-created account so we don't leave
-    // a broken account behind.
+    /*
+     * Generate BOTH tokens here so the raw
+     * watcher token can be returned to the
+     * original signup tab.
+     */
+
+    const emailToken =
+      createRandomToken();
+
+    const watcherToken =
+      createRandomToken();
+
+    user.emailVerificationTokenHash =
+      hashToken(emailToken);
+
+    user.emailVerificationExpiresAt =
+      new Date(
+        Date.now() +
+          EMAIL_VERIFICATION_LIFETIME
+      );
+
+    user.verificationWatcherTokenHash =
+      hashToken(watcherToken);
+
+    user.verificationWatcherExpiresAt =
+      new Date(
+        Date.now() +
+          VERIFICATION_WATCHER_LIFETIME
+      );
+
+    await user.save();
+
     try {
-      await sendVerificationEmail(user);
+      const clientUrl = (
+        process.env.CLIENT_URL ||
+        "http://localhost:5173"
+      ).replace(/\/$/, "");
+
+      const verificationUrl =
+        `${clientUrl}/verify-email?token=${encodeURIComponent(
+          emailToken
+        )}&email=${encodeURIComponent(
+          user.email
+        )}`;
+
+      await sendEmail({
+        to: user.email,
+
+        subject:
+          "Verify your Pomona account",
+
+        htmlContent: `
+          <div style="
+            font-family: Arial, sans-serif;
+            max-width: 560px;
+            margin: 40px auto;
+            padding: 40px;
+            background: #111111;
+            color: #fafaf8;
+            border-radius: 20px;
+          ">
+            <div style="
+              font-size: 11px;
+              letter-spacing: 2px;
+              text-transform: uppercase;
+              color: #888888;
+              margin-bottom: 18px;
+            ">
+              Pomona
+            </div>
+
+            <h1 style="
+              font-weight: 400;
+              margin: 0 0 20px;
+              font-size: 38px;
+            ">
+              Verify your email.
+            </h1>
+
+            <p style="
+              color: #c8c8c8;
+              line-height: 1.7;
+              font-size: 15px;
+            ">
+              Thanks for joining Pomona.
+              Click below to verify your
+              email address.
+            </p>
+
+            <a
+              href="${verificationUrl}"
+              style="
+                display: inline-block;
+                margin-top: 20px;
+                padding: 14px 24px;
+                background: #fafaf8;
+                color: #111111;
+                border-radius: 999px;
+                text-decoration: none;
+                font-size: 13px;
+                font-weight: 600;
+              "
+            >
+              Verify my email
+            </a>
+
+            <p style="
+              margin-top: 30px;
+              color: #777777;
+              font-size: 12px;
+            ">
+              This link expires in 24 hours.
+            </p>
+          </div>
+        `,
+      });
     } catch (emailError) {
-      await User.findByIdAndDelete(user._id);
+      await User.findByIdAndDelete(
+        user._id
+      );
 
       console.error(
         "Verification email error:",
@@ -377,9 +585,15 @@ const signup = async (req, res) => {
 
     return res.status(201).json({
       success: true,
+
       message:
-        "Account created. Please check your email to verify your account.",
+        "Account created. Check your email to verify your account.",
+
       requiresEmailVerification: true,
+
+      verificationWatcherToken:
+        watcherToken,
+
       user: {
         id: user._id,
         name: user.name,
@@ -401,20 +615,386 @@ const signup = async (req, res) => {
 };
 
 // =========================================
+// VERIFICATION STATUS
+// =========================================
+// Called by the ORIGINAL signup tab.
+// This endpoint does not require the normal
+// auth cookies because the user doesn't have
+// an authenticated session yet.
+
+const getVerificationStatus =
+  async (req, res) => {
+    try {
+      const token =
+        req.query.token;
+
+      if (!token) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Verification watcher token is required.",
+        });
+      }
+
+      const user =
+        await User.findOne({
+          verificationWatcherTokenHash:
+            hashToken(token),
+
+          verificationWatcherExpiresAt: {
+            $gt: new Date(),
+          },
+        });
+
+      if (!user) {
+        return res.status(410).json({
+          success: false,
+          status: "expired",
+          message:
+            "Verification session expired.",
+        });
+      }
+
+      if (!user.emailVerified) {
+        return res.status(200).json({
+          success: true,
+          status: "pending",
+        });
+      }
+
+      /*
+       * Verification completed.
+       * Exchange the watcher token for a
+       * normal authenticated Pomona session.
+       */
+
+      const {
+        session,
+        refreshToken,
+      } =
+        await createSession(
+          user._id
+        );
+
+      const accessToken =
+        createAccessToken(
+          user._id.toString(),
+          session._id.toString()
+        );
+
+      setAuthCookies(
+        res,
+        accessToken,
+        refreshToken
+      );
+
+      // Single-use watcher token.
+      user.verificationWatcherTokenHash =
+        null;
+
+      user.verificationWatcherExpiresAt =
+        null;
+
+      user.lastLoginAt =
+        new Date();
+
+      await user.save();
+
+      return res.status(200).json({
+        success: true,
+        status: "verified",
+
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+        },
+      });
+    } catch (error) {
+      console.error(
+        "Verification status error:",
+        error
+      );
+
+      return res.status(500).json({
+        success: false,
+        message:
+          "Could not check verification status.",
+      });
+    }
+  };
+
+// =========================================
+// VERIFY EMAIL
+// =========================================
+
+const verifyEmail = async (
+  req,
+  res
+) => {
+  try {
+    const {
+      token,
+      email,
+    } = req.query;
+
+    if (!token || !email) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid verification link.",
+      });
+    }
+
+    const cleanEmail =
+      email.trim().toLowerCase();
+
+    const user =
+      await User.findOne({
+        email: cleanEmail,
+      });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "This verification link is invalid or expired.",
+      });
+    }
+
+    // Already verified.
+    // This is useful if the user refreshes
+    // or clicks the same link again.
+    if (user.emailVerified) {
+      return res.status(200).json({
+        success: true,
+        alreadyVerified: true,
+        message:
+          "Your email is already verified. You can close this tab.",
+      });
+    }
+
+    const tokenHash =
+      hashToken(token);
+
+    const matchingUser =
+      await User.findOne({
+        _id: user._id,
+
+        emailVerificationTokenHash:
+          tokenHash,
+
+        emailVerificationExpiresAt: {
+          $gt: new Date(),
+        },
+      });
+
+    if (!matchingUser) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "This verification link is invalid or expired.",
+      });
+    }
+
+    matchingUser.emailVerified =
+      true;
+
+    matchingUser.emailVerificationTokenHash =
+      null;
+
+    matchingUser.emailVerificationExpiresAt =
+      null;
+
+    await matchingUser.save();
+
+    /*
+     * IMPORTANT:
+     * Do NOT create the auth session here.
+     * The original signup tab will detect the
+     * verification and create the session.
+     */
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Email verified successfully. You can close this tab.",
+    });
+  } catch (error) {
+    console.error(
+      "Verify email error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message:
+        "Could not verify your email.",
+    });
+  }
+};
+
+// =========================================
+// RESEND VERIFICATION
+// =========================================
+
+const resendVerification =
+  async (req, res) => {
+    try {
+      const email =
+        req.body.email
+          ?.trim()
+          .toLowerCase();
+
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Email is required.",
+        });
+      }
+
+      const user =
+        await User.findOne({
+          email,
+        });
+
+      if (
+        !user ||
+        user.emailVerified
+      ) {
+        return res.status(200).json({
+          success: true,
+          message:
+            "If verification is required, a new email has been sent.",
+        });
+      }
+
+      const emailToken =
+        createRandomToken();
+
+      const watcherToken =
+        createRandomToken();
+
+      user.emailVerificationTokenHash =
+        hashToken(emailToken);
+
+      user.emailVerificationExpiresAt =
+        new Date(
+          Date.now() +
+            EMAIL_VERIFICATION_LIFETIME
+        );
+
+      user.verificationWatcherTokenHash =
+        hashToken(watcherToken);
+
+      user.verificationWatcherExpiresAt =
+        new Date(
+          Date.now() +
+            VERIFICATION_WATCHER_LIFETIME
+        );
+
+      await user.save();
+
+      const clientUrl = (
+        process.env.CLIENT_URL ||
+        "http://localhost:5173"
+      ).replace(/\/$/, "");
+
+      const verificationUrl =
+        `${clientUrl}/verify-email?token=${encodeURIComponent(
+          emailToken
+        )}&email=${encodeURIComponent(
+          user.email
+        )}`;
+
+      await sendEmail({
+        to: user.email,
+
+        subject:
+          "Verify your Pomona account",
+
+        htmlContent: `
+          <div style="
+            font-family: Arial, sans-serif;
+            max-width: 560px;
+            margin: 40px auto;
+            padding: 40px;
+            background: #111111;
+            color: #fafaf8;
+            border-radius: 20px;
+          ">
+            <h1 style="
+              font-weight: 400;
+              font-size: 38px;
+            ">
+              Verify your email.
+            </h1>
+
+            <p style="
+              color: #c8c8c8;
+              line-height: 1.7;
+            ">
+              Click below to verify your
+              Pomona account.
+            </p>
+
+            <a
+              href="${verificationUrl}"
+              style="
+                display: inline-block;
+                margin-top: 20px;
+                padding: 14px 24px;
+                background: #fafaf8;
+                color: #111111;
+                border-radius: 999px;
+                text-decoration: none;
+                font-size: 13px;
+                font-weight: 600;
+              "
+            >
+              Verify my email
+            </a>
+          </div>
+        `,
+      });
+
+      return res.status(200).json({
+        success: true,
+        verificationWatcherToken:
+          watcherToken,
+        message:
+          "A new verification email has been sent.",
+      });
+    } catch (error) {
+      console.error(
+        "Resend verification error:",
+        error
+      );
+
+      return res.status(200).json({
+        success: true,
+        message:
+          "If verification is required, a new email has been sent.",
+      });
+    }
+  };
+
+// =========================================
 // LOGIN
 // =========================================
 
-const login = async (req, res) => {
+const login = async (
+  req,
+  res
+) => {
   try {
     const {
       email,
       password,
     } = req.body;
 
-    if (
-      !email ||
-      !password
-    ) {
+    if (!email || !password) {
       return res.status(400).json({
         success: false,
         message:
@@ -455,11 +1035,6 @@ const login = async (req, res) => {
       });
     }
 
-    // New accounts must verify email.
-    // Existing legacy accounts without the
-    // field remain compatible.
-    
-
     user.lastLoginAt =
       new Date();
 
@@ -468,9 +1043,10 @@ const login = async (req, res) => {
     const {
       session,
       refreshToken,
-    } = await createSession(
-      user._id
-    );
+    } =
+      await createSession(
+        user._id
+      );
 
     const accessToken =
       createAccessToken(
@@ -488,6 +1064,7 @@ const login = async (req, res) => {
       success: true,
       message:
         "Login successful.",
+
       user: {
         id: user._id,
         name: user.name,
@@ -509,178 +1086,6 @@ const login = async (req, res) => {
 };
 
 // =========================================
-// VERIFY EMAIL
-// =========================================
-
-const verifyEmail = async (
-  req,
-  res
-) => {
-  try {
-    const {
-      token,
-      email,
-    } = req.query;
-
-    if (!token || !email) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Invalid verification link.",
-      });
-    }
-
-    const cleanEmail =
-      email.trim().toLowerCase();
-
-    const tokenHash =
-      hashToken(token);
-
-    const user =
-      await User.findOne({
-        email: cleanEmail,
-        emailVerificationTokenHash:
-          tokenHash,
-        emailVerificationExpiresAt: {
-          $gt: new Date(),
-        },
-      });
-
-    if (!user) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "This verification link is invalid or expired.",
-      });
-    }
-
-    // ---------------------------------------
-    // VERIFY EMAIL
-    // ---------------------------------------
-
-    user.emailVerified = true;
-
-    user.emailVerificationTokenHash =
-      null;
-
-    user.emailVerificationExpiresAt =
-      null;
-
-    user.lastLoginAt = new Date();
-
-    await user.save();
-
-    // ---------------------------------------
-    // CREATE AUTH SESSION
-    // ---------------------------------------
-
-    const {
-      session,
-      refreshToken,
-    } = await createSession(
-      user._id
-    );
-
-    const accessToken =
-      createAccessToken(
-        user._id.toString(),
-        session._id.toString()
-      );
-
-    // ---------------------------------------
-    // LOG USER IN AUTOMATICALLY
-    // ---------------------------------------
-
-    setAuthCookies(
-      res,
-      accessToken,
-      refreshToken
-    );
-
-    return res.status(200).json({
-      success: true,
-      message:
-        "Email verified successfully. You're now logged in.",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
-    });
-  } catch (error) {
-    console.error(
-      "Verify email error:",
-      error
-    );
-
-    return res.status(500).json({
-      success: false,
-      message:
-        "Could not verify your email.",
-    });
-  }
-};
-
-// =========================================
-// RESEND VERIFICATION EMAIL
-// =========================================
-
-const resendVerification = async (
-  req,
-  res
-) => {
-  try {
-    const email = req.body.email
-      ?.trim()
-      .toLowerCase();
-
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Email is required.",
-      });
-    }
-
-    const user =
-      await User.findOne({
-        email,
-      });
-
-    // Don't reveal whether an account exists.
-    if (
-      !user ||
-      user.emailVerified
-    ) {
-      return res.status(200).json({
-        success: true,
-        message:
-          "If the account exists and requires verification, a verification email has been sent.",
-      });
-    }
-
-    await sendVerificationEmail(user);
-
-    return res.status(200).json({
-      success: true,
-      message:
-        "If the account exists and requires verification, a verification email has been sent.",
-    });
-  } catch (error) {
-    console.error(
-      "Resend verification error:",
-      error
-    );
-
-    return res.status(200).json({
-      success: true,
-      message:
-        "If the account exists and requires verification, a verification email has been sent.",
-    });
-  }
-};
-
-// =========================================
 // FORGOT PASSWORD
 // =========================================
 
@@ -689,9 +1094,10 @@ const forgotPassword = async (
   res
 ) => {
   try {
-    const email = req.body.email
-      ?.trim()
-      .toLowerCase();
+    const email =
+      req.body.email
+        ?.trim()
+        .toLowerCase();
 
     if (!email) {
       return res.status(400).json({
@@ -707,18 +1113,16 @@ const forgotPassword = async (
         isActive: true,
       });
 
-    // Always return the same response.
-    // This prevents account enumeration.
     if (!user) {
       return res.status(200).json({
         success: true,
         message:
-          "If an account exists for that email, a password reset email has been sent.",
+          "If an account exists for this email, a reset link has been sent.",
       });
     }
 
     const rawToken =
-      createOneTimeToken();
+      createRandomToken();
 
     user.passwordResetTokenHash =
       hashToken(rawToken);
@@ -759,19 +1163,8 @@ const forgotPassword = async (
           color: #fafaf8;
           border-radius: 20px;
         ">
-          <div style="
-            font-size: 11px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: #888;
-            margin-bottom: 18px;
-          ">
-            Pomona
-          </div>
-
           <h1 style="
             font-weight: 400;
-            margin: 0 0 20px;
             font-size: 38px;
           ">
             Reset your password.
@@ -780,10 +1173,9 @@ const forgotPassword = async (
           <p style="
             color: #c8c8c8;
             line-height: 1.7;
-            font-size: 15px;
           ">
-            We received a request to reset
-            your Pomona password.
+            Click below to choose a new
+            password.
           </p>
 
           <a
@@ -805,12 +1197,10 @@ const forgotPassword = async (
 
           <p style="
             margin-top: 30px;
-            color: #777;
+            color: #777777;
             font-size: 12px;
           ">
             This link expires in 15 minutes.
-            If you didn't request this,
-            you can safely ignore this email.
           </p>
         </div>
       `,
@@ -819,7 +1209,7 @@ const forgotPassword = async (
     return res.status(200).json({
       success: true,
       message:
-        "If an account exists for that email, a password reset email has been sent.",
+        "If an account exists for this email, a reset link has been sent.",
     });
   } catch (error) {
     console.error(
@@ -827,11 +1217,10 @@ const forgotPassword = async (
       error
     );
 
-    // Still return generic response.
     return res.status(200).json({
       success: true,
       message:
-        "If an account exists for that email, a password reset email has been sent.",
+        "If an account exists for this email, a reset link has been sent.",
     });
   }
 };
@@ -874,17 +1263,17 @@ const resetPassword = async (
     const cleanEmail =
       email.trim().toLowerCase();
 
-    const tokenHash =
-      hashToken(token);
-
     const user =
       await User.findOne({
         email: cleanEmail,
+
         passwordResetTokenHash:
-          tokenHash,
+          hashToken(token),
+
         passwordResetExpiresAt: {
           $gt: new Date(),
         },
+
         isActive: true,
       });
 
@@ -897,7 +1286,10 @@ const resetPassword = async (
     }
 
     user.password =
-      await bcrypt.hash(password, 12);
+      await bcrypt.hash(
+        password,
+        12
+      );
 
     user.passwordChangedAt =
       new Date();
@@ -910,7 +1302,6 @@ const resetPassword = async (
 
     await user.save();
 
-    // Revoke every existing session.
     await Session.updateMany(
       {
         user: user._id,
@@ -935,7 +1326,7 @@ const resetPassword = async (
     return res.status(500).json({
       success: false,
       message:
-        "Could not reset password.",
+        "Could not reset your password.",
     });
   }
 };
@@ -988,7 +1379,6 @@ const deleteAccount = async (
       });
     }
 
-    // Revoke all sessions first.
     await Session.updateMany(
       {
         user: user._id,
@@ -999,7 +1389,6 @@ const deleteAccount = async (
       }
     );
 
-    // Remove account.
     await User.findByIdAndDelete(
       user._id
     );
@@ -1045,12 +1434,10 @@ const refreshSession = async (
       });
     }
 
-    const sessionTokenHash =
-      hashToken(refreshToken);
-
     const session =
       await Session.findOne({
-        sessionTokenHash,
+        sessionTokenHash:
+          hashToken(refreshToken),
       }).populate("user");
 
     if (!session) {
@@ -1065,7 +1452,8 @@ const refreshSession = async (
 
     if (
       session.revokedAt ||
-      session.expiresAt <= new Date() ||
+      session.expiresAt <=
+        new Date() ||
       !session.user ||
       !session.user.isActive
     ) {
@@ -1143,7 +1531,9 @@ const logout = async (
       await Session.findOneAndUpdate(
         {
           sessionTokenHash:
-            hashToken(refreshToken),
+            hashToken(
+              refreshToken
+            ),
           revokedAt: null,
         },
         {
@@ -1171,7 +1561,7 @@ const logout = async (
 };
 
 // =========================================
-// GET CURRENT USER
+// CURRENT USER
 // =========================================
 
 const getCurrentUser = async (
@@ -1200,11 +1590,6 @@ const getCurrentUser = async (
       user,
     });
   } catch (error) {
-    console.error(
-      "Get current user error:",
-      error
-    );
-
     return res.status(500).json({
       success: false,
       message:
@@ -1213,15 +1598,12 @@ const getCurrentUser = async (
   }
 };
 
-// =========================================
-// EXPORT
-// =========================================
-
 module.exports = {
   signup,
-  login,
+  getVerificationStatus,
   verifyEmail,
   resendVerification,
+  login,
   forgotPassword,
   resetPassword,
   deleteAccount,

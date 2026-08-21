@@ -4,16 +4,19 @@ const router = express.Router();
 
 const {
   signup,
-  login,
+  getVerificationStatus,
   verifyEmail,
   resendVerification,
+  login,
   forgotPassword,
   resetPassword,
   deleteAccount,
   refreshSession,
   logout,
   getCurrentUser,
-} = require("../controllers/AuthController");
+} = require(
+  "../controllers/AuthController"
+);
 
 const protect = require(
   "../middleware/authMiddleware"
@@ -32,10 +35,9 @@ router.post(
   signup
 );
 
-router.post(
-  "/login",
-  authLimiter,
-  login
+router.get(
+  "/verification-status",
+   getVerificationStatus
 );
 
 router.get(
@@ -47,6 +49,12 @@ router.post(
   "/resend-verification",
   authLimiter,
   resendVerification
+);
+
+router.post(
+  "/login",
+  authLimiter,
+  login
 );
 
 router.post(

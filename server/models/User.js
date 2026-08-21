@@ -30,6 +30,43 @@ const userSchema = new mongoose.Schema(
       default: true,
     },
 
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    emailVerificationTokenHash: {
+      type: String,
+      default: null,
+    },
+
+    emailVerificationExpiresAt: {
+      type: Date,
+      default: null,
+    },
+
+    // Short-lived token used ONLY by the original
+    // signup tab to detect verification.
+    verificationWatcherTokenHash: {
+      type: String,
+      default: null,
+    },
+
+    verificationWatcherExpiresAt: {
+      type: Date,
+      default: null,
+    },
+
+    passwordResetTokenHash: {
+      type: String,
+      default: null,
+    },
+
+    passwordResetExpiresAt: {
+      type: Date,
+      default: null,
+    },
+
     passwordChangedAt: {
       type: Date,
       default: null,
@@ -39,31 +76,6 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-
-    emailVerified: {
-  type: Boolean,
-  default: false,
-},
-
-emailVerificationTokenHash: {
-  type: String,
-  default: null,
-},
-
-emailVerificationExpiresAt: {
-  type: Date,
-  default: null,
-},
-
-passwordResetTokenHash: {
-  type: String,
-  default: null,
-},
-
-passwordResetExpiresAt: {
-  type: Date,
-  default: null,
-},
   },
   {
     timestamps: true,
