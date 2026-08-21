@@ -9,22 +9,38 @@ function SmoothScroll({ children }) {
   useEffect(() => {
     const lenis = new Lenis({
       autoRaf: false,
-      duration: 0.3,
+      duration: 0.8,
       smoothWheel: true,
-      syncTouch: true,
+      syncTouch: false,
     });
 
-    lenis.on("scroll", ScrollTrigger.update);
+    const updateScrollTrigger = () => {
+      ScrollTrigger.update();
+    };
 
     const update = (time) => {
       lenis.raf(time * 1000);
     };
 
+    lenis.on(
+      "scroll",
+      updateScrollTrigger
+    );
+
     gsap.ticker.add(update);
-    gsap.ticker.lagSmoothing(0);
+
+    // Let GSAP handle temporary frame drops
+    // instead of forcing every frame through.
+    gsap.ticker.lagSmoothing(500, 33);
 
     return () => {
+      lenis.off(
+        "scroll",
+        updateScrollTrigger
+      );
+
       gsap.ticker.remove(update);
+
       lenis.destroy();
     };
   }, []);
