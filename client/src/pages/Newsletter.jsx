@@ -1,25 +1,86 @@
 import "./Newsletter.css";
+
 import { motion } from "framer-motion";
-import { useState } from "react";
+
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  useLocation,
+} from "react-router-dom";
+
 import axios from "axios";
 
 import Navbar from "../components/layout/Navbar";
 import meImage from "../assets/images/me.png";
 
 function Newsletter() {
-  const [email, setEmail] = useState("");
+  const location = useLocation();
 
-  const [status, setStatus] = useState({
-    type: "",
-    message: "",
-  });
+  const [email, setEmail] =
+    useState(
+      location.state?.email || ""
+    );
 
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] =
+    useState({
+      type: "",
+      message: "",
+    });
 
-  const handleSubmit = async (event) => {
+  const [loading, setLoading] =
+    useState(false);
+
+  // =========================================
+  // CONSUME EMAIL FROM FOOTER
+  // =========================================
+
+  useEffect(() => {
+    if (location.state?.email) {
+      setEmail(
+        location.state.email
+      );
+
+      /*
+       * Remove the router state after
+       * consuming it so browser navigation
+       * doesn't keep restoring the email.
+       */
+      window.history.replaceState(
+        {},
+        document.title,
+        window.location.pathname
+      );
+    }
+  }, [location.state]);
+
+  // =========================================
+  // SUBMIT NEWSLETTER
+  // =========================================
+
+  const handleSubmit = async (
+    event
+  ) => {
     event.preventDefault();
 
-    if (loading) return;
+    if (loading) {
+      return;
+    }
+
+    const cleanEmail =
+      email.trim();
+
+    if (!cleanEmail) {
+      setStatus({
+        type: "error",
+        message:
+          "Please enter your email address.",
+      });
+
+      return;
+    }
 
     setLoading(true);
 
@@ -29,21 +90,29 @@ function Newsletter() {
     });
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/newsletter/subscribe",
-        {
-          email: email.trim(),
-        }
-      );
+      const response =
+        await axios.post(
+          "http://localhost:5000/api/newsletter/subscribe",
+          {
+            email: cleanEmail,
+          },
+          {
+            withCredentials: true,
+          }
+        );
 
       setStatus({
         type: "success",
         message:
           response.data.message ||
-          "You're subscribed!",
+          "Check your email to confirm your subscription.",
       });
 
-      setEmail("");
+      /*
+       * Don't clear the email immediately.
+       * It is nicer UX to let the user see
+       * exactly which email they submitted.
+       */
     } catch (error) {
       console.error(
         "Newsletter subscription error:",
@@ -78,7 +147,12 @@ function Newsletter() {
         transition={{
           opacity: {
             duration: 0.8,
-            ease: [0.22, 1, 0.36, 1],
+            ease: [
+              0.22,
+              1,
+              0.36,
+              1,
+            ],
           },
 
           y: {
@@ -108,7 +182,12 @@ function Newsletter() {
             transition={{
               delay: 0.2,
               duration: 0.7,
-              ease: [0.22, 1, 0.36, 1],
+              ease: [
+                0.22,
+                1,
+                0.36,
+                1,
+              ],
             }}
           />
 
@@ -133,8 +212,9 @@ function Newsletter() {
           </h2>
 
           <p className="newsletter-description">
-            New projects, experiments, ideas and
-            things I build along the way.
+            New projects, experiments,
+            ideas and things I build
+            along the way.
           </p>
 
           <form
@@ -145,7 +225,9 @@ function Newsletter() {
               type="email"
               value={email}
               onChange={(event) =>
-                setEmail(event.target.value)
+                setEmail(
+                  event.target.value
+                )
               }
               placeholder="Your email address"
               aria-label="Your email address"

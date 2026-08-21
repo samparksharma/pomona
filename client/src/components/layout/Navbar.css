@@ -3,23 +3,18 @@
 .navbar {
     width: 100%;
     height: 90px;
-
     display: flex;
     justify-content: space-between;
     align-items: center;
-
     padding: 0 45px;
-
     position: absolute;
     top: 0;
     left: 0;
-
     z-index: 100;
-
     background: transparent;
-
     transition: all 0.35s ease;
 }
+
 /* ---------------- Navbar Left ---------------- */
 
 .navbar__left {
@@ -38,26 +33,19 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-
     padding: 10px 14px;
-
     border: 1px solid #d2d2cf;
     border-radius: 999px;
-
     background: rgba(255, 255, 255, 0.75);
-
     color: #222;
-
     font-family: "Inter", sans-serif;
     font-size: 14px;
-
     cursor: pointer;
-
     transition:
-        background .25s ease,
-        border-color .25s ease,
-        transform .25s ease,
-        color .25s ease;
+        background 0.25s ease,
+        border-color 0.25s ease,
+        transform 0.25s ease,
+        color 0.25s ease;
 }
 
 .navbar-filter-trigger:hover {
@@ -74,54 +62,38 @@
 
 .navbar-filter-chevron {
     font-size: 11px;
-    opacity: .65;
+    opacity: 0.65;
 }
 
 /* ---------------- Filter Panel ---------------- */
 
 .navbar-filter-panel {
     position: absolute;
-
     top: calc(100% + 10px);
     left: 0;
-
     z-index: 200;
-
     width: 175px;
-
     display: flex;
     flex-direction: column;
     gap: 5px;
-
     padding: 8px;
-
     border: 1px solid #ddd;
     border-radius: 16px;
-
-    background: rgba(255, 255, 255, .97);
-
+    background: rgba(255, 255, 255, 0.97);
     box-shadow:
-        0 18px 50px rgba(0, 0, 0, .12);
-
+        0 18px 50px rgba(0, 0, 0, 0.12);
     transform-origin: top left;
-
     opacity: 0;
-    transform:
-        scaleY(.92) translateY(-8px);
-
+    transform: scaleY(0.92) translateY(-8px);
     pointer-events: none;
-
     transition:
-        opacity .22s ease,
-        transform .22s ease;
+        opacity 0.22s ease,
+        transform 0.22s ease;
 }
 
 .navbar-filter-panel.open {
     opacity: 1;
-
-    transform:
-        scaleY(1) translateY(0);
-
+    transform: scaleY(1) translateY(0);
     pointer-events: auto;
 }
 
@@ -129,30 +101,21 @@
 
 .navbar-season-option {
     width: 100%;
-
     display: flex;
     align-items: center;
     gap: 10px;
-
     padding: 10px 12px;
-
     border: none;
     border-radius: 10px;
-
     background: transparent;
-
     color: #555;
-
     font-family: "Inter", sans-serif;
     font-size: 14px;
-
     text-align: left;
-
     cursor: pointer;
-
     transition:
-        background .2s ease,
-        color .2s ease;
+        background 0.2s ease,
+        color 0.2s ease;
 }
 
 .navbar-season-option:hover {
@@ -184,24 +147,16 @@
 .navbar-back {
     width: 42px;
     height: 42px;
-
     border-radius: 50%;
-
     border: 1px solid #dcdcdc;
-
     background: #fafaf8;
-
     color: #111;
-
     font-size: 18px;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     cursor: pointer;
-
-    transition: all .25s ease;
+    transition: all 0.25s ease;
 }
 
 .navbar-back:hover {
@@ -211,10 +166,24 @@
 
 /* ---------------- Center Links ---------------- */
 
+/*
+ * IMPORTANT:
+ * These links are now centered against the navbar itself,
+ * not between the left and right content.
+ *
+ * So Login/Sign Up -> Avatar won't move them.
+ */
+
 .navbar__links {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+
     display: flex;
     align-items: center;
     gap: 48px;
+    white-space: nowrap;
 }
 
 .navbar__links a {
@@ -222,14 +191,13 @@
     font-size: 16px;
     font-weight: 400;
     text-decoration: none;
-
     transition:
-        opacity .3s ease,
-        transform .3s ease;
+        opacity 0.3s ease,
+        transform 0.3s ease;
 }
 
 .navbar__links a:hover {
-    opacity: .75;
+    opacity: 0.75;
     transform: translateY(-1px);
 }
 
@@ -244,51 +212,40 @@
 .login-btn {
     color: #ffffff;
     text-decoration: none;
-
     padding: 12px 22px;
-
     border-radius: 999px;
-
     background: transparent;
-
     transition:
-        background .35s ease,
-        color .35s ease,
-        transform .35s ease,
-        box-shadow .35s ease;
+        background 0.35s ease,
+        color 0.35s ease,
+        transform 0.35s ease,
+        box-shadow 0.35s ease;
 }
 
 .login-btn:hover {
     background: #ffffff;
     color: #111111;
-
     transform: translateY(-2px);
-
     box-shadow:
-        0 8px 22px rgba(255, 255, 255, .18);
+        0 8px 22px rgba(255, 255, 255, 0.18);
 }
 
 .signup-btn {
     background: #ffffff;
     color: #111111;
-
     padding: 12px 22px;
-
     border-radius: 999px;
-
     text-decoration: none;
-
     transition:
-        transform .35s ease,
-        box-shadow .35s ease;
+        transform 0.35s ease,
+        box-shadow 0.35s ease;
 }
 
 .signup-btn:hover {
     transform: translateY(-2px) scale(1.02);
-
     box-shadow:
-        0 0 20px rgba(250, 250, 248, .45),
-        0 10px 28px rgba(250, 250, 248, .20);
+        0 0 20px rgba(250, 250, 248, 0.45),
+        0 10px 28px rgba(250, 250, 248, 0.20);
 }
 
 .login-btn,
@@ -310,17 +267,17 @@
 
 .navbar-light .login-btn:hover {
     background: #111111;
-    color: #FAFAF8;
+    color: #fafaf8;
 }
 
 .navbar-light .signup-btn {
     background: #111111;
-    color: #FAFAF8;
+    color: #fafaf8;
 }
 
 .navbar-light .signup-btn:hover {
     box-shadow:
-        0 12px 30px rgba(0, 0, 0, .18);
+        0 12px 30px rgba(0, 0, 0, 0.18);
 }
 
 /* =========================================
@@ -334,23 +291,17 @@
 .navbar-avatar {
     width: 42px;
     height: 42px;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     border: 1px solid #ffffff;
     border-radius: 50%;
-
     background: #ffffff;
     color: #111111;
-
     font-family: "Inter", sans-serif;
     font-size: 13px;
     font-weight: 500;
-
     cursor: pointer;
-
     transition:
         background 0.25s ease,
         color 0.25s ease,
@@ -364,7 +315,6 @@
 
 .navbar-light .navbar-avatar {
     border-color: #111111;
-
     background: #111111;
     color: #fafaf8;
 }
@@ -374,38 +324,25 @@
     color: #111111;
 }
 
-
 /* =========================================
    ACCOUNT MENU
 ========================================= */
 
 .navbar-account-menu {
     position: absolute;
-
     top: calc(100% + 12px);
     right: 0;
-
     width: 270px;
-
     padding: 10px;
-
     border: 1px solid rgba(17, 17, 17, 0.1);
     border-radius: 18px;
-
     background: #fafaf8;
-
     box-shadow:
         0 18px 50px rgba(0, 0, 0, 0.14);
-
     opacity: 0;
-
-    transform:
-        translateY(-8px) scale(0.97);
-
+    transform: translateY(-8px) scale(0.97);
     pointer-events: none;
-
     transform-origin: top right;
-
     transition:
         opacity 0.2s ease,
         transform 0.2s ease;
@@ -413,13 +350,9 @@
 
 .navbar-account-menu.open {
     opacity: 1;
-
-    transform:
-        translateY(0) scale(1);
-
+    transform: translateY(0) scale(1);
     pointer-events: auto;
 }
-
 
 /* =========================================
    ACCOUNT HEADER
@@ -428,69 +361,50 @@
 .navbar-account-header {
     display: flex;
     align-items: center;
-
     gap: 12px;
-
     padding: 9px 8px;
 }
 
 .navbar-account-large-avatar {
     width: 42px;
     height: 42px;
-
     flex-shrink: 0;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     border-radius: 50%;
-
     background: #111111;
     color: #fafaf8;
-
     font-family: "Inter", sans-serif;
-
     font-size: 12px;
     font-weight: 500;
 }
 
 .navbar-account-user {
     min-width: 0;
-
     display: flex;
     flex-direction: column;
-
     gap: 3px;
 }
 
 .navbar-account-user strong {
     overflow: hidden;
-
     color: #111111;
-
     font-family: "Inter", sans-serif;
-
     font-size: 13px;
     font-weight: 600;
-
     white-space: nowrap;
     text-overflow: ellipsis;
 }
 
 .navbar-account-user span {
     overflow: hidden;
-
     color: #777;
-
     font-family: "Inter", sans-serif;
-
     font-size: 11px;
-
     white-space: nowrap;
     text-overflow: ellipsis;
 }
-
 
 /* =========================================
    DIVIDER
@@ -498,12 +412,9 @@
 
 .navbar-account-divider {
     height: 1px;
-
     margin: 7px 0;
-
     background: #e7e7e4;
 }
-
 
 /* =========================================
    ACTIONS
@@ -511,29 +422,18 @@
 
 .navbar-account-action {
     width: 100%;
-
     display: flex;
     align-items: center;
-
     gap: 11px;
-
     padding: 11px 10px;
-
     border: none;
     border-radius: 11px;
-
     background: transparent;
-
     color: #333;
-
     font-family: "Inter", sans-serif;
-
     font-size: 12px;
-
     text-align: left;
-
     cursor: pointer;
-
     transition:
         background 0.2s ease,
         color 0.2s ease;
@@ -541,7 +441,6 @@
 
 .navbar-account-action:hover {
     background: #eeeeeb;
-
     color: #111111;
 }
 
@@ -551,44 +450,41 @@
 
 .navbar-account-action.logout:hover {
     background: #f7eaea;
-
     color: #8d2f2f;
 }
 
 .navbar-account-action:disabled {
     opacity: 0.5;
-
     cursor: not-allowed;
 }
 
+/* =========================================
+   NEWSLETTER TOAST
+========================================= */
+
 .newsletter-toast {
     position: fixed;
-
     right: 28px;
     bottom: 28px;
-
     z-index: 10000;
-
     display: flex;
     align-items: center;
     gap: 10px;
-
     max-width: 360px;
-
     padding: 13px 16px;
-
     border: 1px solid rgba(17, 17, 17, 0.08);
     border-radius: 999px;
-
     background: #111111;
     color: #fafaf8;
-
     box-shadow:
         0 14px 35px rgba(0, 0, 0, 0.16);
-
     font-family: "Inter", sans-serif;
     font-size: 12px;
 }
+
+/* =========================================
+   DANGER ACTION
+========================================= */
 
 .navbar-account-action.danger {
     color: #9b4444;
@@ -597,4 +493,58 @@
 .navbar-account-action.danger:hover {
     background: #f7eaea;
     color: #8d2f2f;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 900px) {
+    .navbar {
+        padding: 0 24px;
+    }
+
+    /*
+     * On smaller screens, go back to normal
+     * document flow so the links don't overlap
+     * the left/right controls.
+     */
+
+    .navbar__links {
+        position: static;
+        transform: none;
+
+        display: flex;
+        align-items: center;
+        gap: 24px;
+    }
+}
+
+@media (max-width: 700px) {
+    .navbar {
+        height: 76px;
+        padding: 0 18px;
+    }
+
+    .navbar__links {
+        gap: 16px;
+    }
+
+    .navbar__links a {
+        font-size: 13px;
+    }
+
+    .login-btn,
+    .signup-btn {
+        min-width: auto;
+        padding: 10px 14px;
+    }
+
+    .navbar__auth {
+        gap: 8px;
+    }
+
+    .navbar__logo img {
+        height: 150px;
+    }
 }
