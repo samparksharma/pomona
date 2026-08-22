@@ -518,6 +518,26 @@
         align-items: center;
         gap: 24px;
     }
+    
+}
+/* =========================================
+   NAVBAR WITH FRUIT SEARCH
+   ========================================= */
+
+.navbar-with-search {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar-with-search .navbar__links {
+    position: static;
+    transform: none;
+
+    display: flex;
+    align-items: center;
+    gap: 48px;
+    white-space: nowrap;
 }
 
 @media (max-width: 700px) {

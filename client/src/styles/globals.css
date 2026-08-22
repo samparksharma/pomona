@@ -88,3 +88,109 @@ body.home-route {
 body.home-route::-webkit-scrollbar {
     display: none;
 }
+
+/* =========================================
+   POMONA SCROLL HINT
+========================================= */
+
+.pomona-scroll-toast {
+    position: fixed;
+    right: 28px;
+    bottom: 28px;
+
+    z-index: 9999;
+
+    display: flex;
+    align-items: center;
+    gap: 9px;
+
+    padding: 11px 15px;
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+
+    background: rgba(17, 17, 17, 0.86);
+    color: #fafaf8;
+
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+
+    box-shadow:
+        0 12px 35px rgba(0, 0, 0, 0.16);
+
+    font-family: "Inter", sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+
+    animation:
+        pomonaScrollToastIn 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+        pomonaScrollToastOut 0.55s ease 5s forwards;
+}
+
+.pomona-scroll-toast-dot {
+    width: 6px;
+    height: 6px;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    background: #fafaf8;
+    opacity: 0.8;
+
+    animation:
+        pomonaScrollDot 1.6s ease-in-out infinite;
+}
+
+@keyframes pomonaScrollToastIn {
+    from {
+        opacity: 0;
+        transform:
+            translateY(14px) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform:
+            translateY(0) scale(1);
+    }
+}
+
+@keyframes pomonaScrollToastOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform:
+            translateY(8px);
+    }
+}
+
+@keyframes pomonaScrollDot {
+
+    0%,
+    100% {
+        opacity: 0.35;
+        transform: scale(0.85);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@media (max-width: 700px) {
+    .pomona-scroll-toast {
+        right: 16px;
+        bottom: 18px;
+
+        padding: 10px 13px;
+
+        font-size: 10px;
+    }
+}

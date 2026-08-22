@@ -436,11 +436,9 @@ useEffect(() => {
   return (
     <>
       <motion.nav
-        className={`navbar ${
-          light
-            ? "navbar-light"
-            : ""
-        }`}
+  className={`navbar ${
+    light ? "navbar-light" : ""
+  } ${showSearch ? "navbar-with-search" : ""}`}
         initial={{
           opacity: 0,
           y: -18,

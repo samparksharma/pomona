@@ -9,20 +9,214 @@ const {
   searchWikimediaImages,
 } = require("../services/wikimediaService");
 
+const WIKIPEDIA_API =
+  "https://en.wikipedia.org";
+
+// =====================================================
+// WIKIPEDIA HELPERS
+// =====================================================
+
+const wikiHeaders = {
+  "User-Agent":
+    "Pomona/1.0 (Educational Project)",
+  Accept: "application/json",
+};
+
+// -----------------------------------------
+// NORMALIZE USER SEARCH
+// -----------------------------------------
+
+const normalizeFruitQuery = (
+  value = ""
+) => {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(
+      /\b(fruit|fruits)\b/gi,
+      ""
+    )
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
+// -----------------------------------------
+// GET WIKIPEDIA SUMMARY BY TITLE
+// -----------------------------------------
+
+const getWikipediaSummary = async (
+  title
+) => {
+  const response = await axios.get(
+    `${WIKIPEDIA_API}/api/rest_v1/page/summary/${encodeURIComponent(
+      title
+    )}`,
+    {
+      headers: wikiHeaders,
+      timeout: 8000,
+    }
+  );
+
+  return response.data;
+};
+
+// -----------------------------------------
+// SEARCH WIKIPEDIA FOR BEST MATCH
+// -----------------------------------------
+
+const searchWikipediaTitle = async (
+  query
+) => {
+  const response = await axios.get(
+    `${WIKIPEDIA_API}/w/api.php`,
+    {
+      params: {
+        action: "query",
+        list: "search",
+        srsearch: query,
+        srlimit: 5,
+        format: "json",
+        formatversion: 2,
+      },
+
+      headers: wikiHeaders,
+
+      timeout: 8000,
+    }
+  );
+
+  const results =
+    response.data?.query?.search ||
+    [];
+
+  if (!results.length) {
+    return null;
+  }
+
+  return results[0].title;
+};
+
+// -----------------------------------------
+// SMART WIKIPEDIA LOOKUP
+// -----------------------------------------
+
+const findWikipediaFruit = async (
+  originalQuery
+) => {
+  const original =
+    originalQuery.trim();
+
+  const normalized =
+    normalizeFruitQuery(original);
+
+  const attempts = [];
+
+  // 1. Exact user query
+  if (original) {
+    attempts.push(original);
+  }
+
+  // 2. Remove generic "fruit/fruits"
+  if (
+    normalized &&
+    normalized !== original.toLowerCase()
+  ) {
+    attempts.push(normalized);
+  }
+
+  // ---------------------------------------
+  // DIRECT PAGE LOOKUPS
+  // ---------------------------------------
+
+  for (const attempt of attempts) {
+    try {
+      const data =
+        await getWikipediaSummary(
+          attempt
+        );
+
+      if (data?.title) {
+        return {
+          data,
+          searchedAs: attempt,
+          exact: attempt === original,
+        };
+      }
+    } catch (error) {
+      // Continue to next fallback.
+    }
+  }
+
+  // ---------------------------------------
+  // WIKIPEDIA SEARCH FALLBACK
+  // ---------------------------------------
+
+  const searchQueries = [];
+
+  if (normalized) {
+    searchQueries.push(normalized);
+  }
+
+  if (original) {
+    searchQueries.push(
+      `${original} fruit`
+    );
+  }
+
+  for (
+    const searchQuery of searchQueries
+  ) {
+    try {
+      const title =
+        await searchWikipediaTitle(
+          searchQuery
+        );
+
+      if (!title) {
+        continue;
+      }
+
+      const data =
+        await getWikipediaSummary(
+          title
+        );
+
+      if (data?.title) {
+        return {
+          data,
+          searchedAs: title,
+          exact: false,
+        };
+      }
+    } catch (error) {
+      // Continue to next fallback.
+    }
+  }
+
+  return null;
+};
 
 // =====================================================
 // GET ALL FRUITS - SEEDED RANDOM ORDER
 // =====================================================
 
-const getAllFruits = async (req, res) => {
+const getAllFruits = async (
+  req,
+  res
+) => {
   try {
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 20;
+    const page =
+      Number(req.query.page) || 1;
 
-    const seed =
-      String(req.query.seed || "default");
+    const limit =
+      Number(req.query.limit) || 20;
 
-    const skip = (page - 1) * limit;
+    const seed = String(
+      req.query.seed || "default"
+    );
+
+    const skip =
+      (page - 1) * limit;
 
     const total =
       await Fruit.countDocuments();
@@ -30,14 +224,16 @@ const getAllFruits = async (req, res) => {
     const fruits =
       await Fruit.find().lean();
 
-    // -----------------------------------------
-    // DETERMINISTIC SEEDED SHUFFLE
-    // -----------------------------------------
-
-    const hashString = (value) => {
+    const hashString = (
+      value
+    ) => {
       let hash = 0;
 
-      for (let i = 0; i < value.length; i++) {
+      for (
+        let i = 0;
+        i < value.length;
+        i++
+      ) {
         hash =
           (hash << 5) -
           hash +
@@ -50,13 +246,15 @@ const getAllFruits = async (req, res) => {
     };
 
     fruits.sort((a, b) => {
-      const aHash = hashString(
-        `${seed}-${a._id}`
-      );
+      const aHash =
+        hashString(
+          `${seed}-${a._id}`
+        );
 
-      const bHash = hashString(
-        `${seed}-${b._id}`
-      );
+      const bHash =
+        hashString(
+          `${seed}-${b._id}`
+        );
 
       return aHash - bHash;
     });
@@ -67,7 +265,7 @@ const getAllFruits = async (req, res) => {
         skip + limit
       );
 
-    res.status(200).json({
+    return res.status(200).json({
       fruits: paginatedFruits,
       currentPage: page,
       totalPages: Math.ceil(
@@ -81,20 +279,25 @@ const getAllFruits = async (req, res) => {
       error
     );
 
-    res.status(500).json({
+    return res.status(500).json({
       message: error.message,
     });
   }
 };
-
 
 // =====================================================
 // GET FRUIT BY ID
 // =====================================================
 
-const getFruitById = async (req, res) => {
+const getFruitById = async (
+  req,
+  res
+) => {
   try {
-    const fruit = await Fruit.findById(req.params.id);
+    const fruit =
+      await Fruit.findById(
+        req.params.id
+      );
 
     if (!fruit) {
       return res.status(404).json({
@@ -102,22 +305,29 @@ const getFruitById = async (req, res) => {
       });
     }
 
-    res.status(200).json(fruit);
+    return res.status(200).json(
+      fruit
+    );
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       message: error.message,
     });
   }
 };
-
 
 // =====================================================
 // GET FRUIT DETAILS
 // =====================================================
 
-const getFruitDetails = async (req, res) => {
+const getFruitDetails = async (
+  req,
+  res
+) => {
   try {
-    const fruit = await Fruit.findById(req.params.id);
+    const fruit =
+      await Fruit.findById(
+        req.params.id
+      );
 
     if (!fruit) {
       return res.status(404).json({
@@ -125,95 +335,101 @@ const getFruitDetails = async (req, res) => {
       });
     }
 
-    const wikiResponse = await axios.get(
-      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(
-        fruit.name
-      )}`,
-      {
-        headers: {
-          "User-Agent":
-            "Pomona/1.0 (Educational Project)",
-          Accept: "application/json",
-        },
-      }
-    );
+    const wikiResponse =
+      await getWikipediaSummary(
+        fruit.wikipediaTitle ||
+          fruit.name
+      );
 
-    res.status(200).json({
+    return res.status(200).json({
       fruit,
-      wikipedia: wikiResponse.data,
+      wikipedia: wikiResponse,
     });
   } catch (error) {
-    console.log(error);
+    console.log(
+      "Fruit details error:",
+      error
+    );
 
-    res.status(500).json({
+    return res.status(500).json({
       message: error.message,
     });
   }
 };
 
-
 // =====================================================
 // CREATE FRUIT MANUALLY
 // =====================================================
 
-const createFruit = async (req, res) => {
+const createFruit = async (
+  req,
+  res
+) => {
   try {
     const fruitData = {
       ...req.body,
     };
 
     try {
-      const wikiResponse = await axios.get(
-        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(
+      const wikiData =
+        await findWikipediaFruit(
           fruitData.name
-        )}`,
-        {
-          headers: {
-            "User-Agent":
-              "Pomona/1.0 (Educational Project)",
-            Accept: "application/json",
-          },
+        );
+
+      if (wikiData) {
+        const wiki =
+          wikiData.data;
+
+        fruitData.wikipediaTitle =
+          wiki.title;
+
+        if (wiki.extract) {
+          fruitData.overview =
+            wiki.extract;
         }
-      );
 
-      fruitData.wikipediaTitle =
-        wikiResponse.data.title;
+        if (
+          wiki.thumbnail?.source
+        ) {
+          fruitData.heroImage =
+            wiki.thumbnail.source;
 
-      if (wikiResponse.data.extract) {
-        fruitData.overview =
-          wikiResponse.data.extract;
+          fruitData.gallery = [
+            wiki.thumbnail.source,
+          ];
+        }
       }
-
-      if (wikiResponse.data.thumbnail?.source) {
-        fruitData.heroImage =
-          wikiResponse.data.thumbnail.source;
-
-        fruitData.gallery = [
-          wikiResponse.data.thumbnail.source,
-        ];
-      }
-    } catch (wikiError) {
+    } catch (
+      wikiError
+    ) {
       console.log(
         "Wikipedia data could not be fetched."
       );
     }
 
-    const fruit = await Fruit.create(fruitData);
+    const fruit =
+      await Fruit.create(
+        fruitData
+      );
 
-    res.status(201).json(fruit);
+    return res.status(201).json(
+      fruit
+    );
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       message: error.message,
     });
   }
 };
 
-
 // =====================================================
 // SEARCH EXISTING FRUITS
 // =====================================================
 
-const searchFruits = async (req, res) => {
+const searchFruits = async (
+  req,
+  res
+) => {
   try {
     const { q } = req.query;
 
@@ -221,46 +437,67 @@ const searchFruits = async (req, res) => {
       return res.json([]);
     }
 
-    const query = q.trim();
+    const query =
+      q.trim();
 
-    const fruits = await Fruit.find({
-      name: {
-        $regex: query,
-        $options: "i",
-      },
-    }).limit(20);
+    const fruits =
+      await Fruit.find({
+        name: {
+          $regex: query,
+          $options: "i",
+        },
+      }).limit(20);
 
-    // Prefix matches first, then partial matches
-    const lowerQuery = query.toLowerCase();
+    const lowerQuery =
+      query.toLowerCase();
 
     fruits.sort((a, b) => {
-      const aName = a.name.toLowerCase();
-      const bName = b.name.toLowerCase();
+      const aName =
+        a.name.toLowerCase();
+
+      const bName =
+        b.name.toLowerCase();
 
       const aStarts =
-        aName.startsWith(lowerQuery);
+        aName.startsWith(
+          lowerQuery
+        );
 
       const bStarts =
-        bName.startsWith(lowerQuery);
+        bName.startsWith(
+          lowerQuery
+        );
 
-      if (aStarts && !bStarts) return -1;
-      if (!aStarts && bStarts) return 1;
+      if (
+        aStarts &&
+        !bStarts
+      ) {
+        return -1;
+      }
 
-      return aName.localeCompare(bName);
+      if (
+        !aStarts &&
+        bStarts
+      ) {
+        return 1;
+      }
+
+      return aName.localeCompare(
+        bName
+      );
     });
 
-    res.status(200).json(
+    return res.status(200).json(
       fruits.slice(0, 8)
     );
   } catch (error) {
     console.log(error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Search failed",
     });
   }
 };
-
 
 // =====================================================
 // FIND OR CREATE FRUIT
@@ -270,24 +507,35 @@ const findOrCreateFruit = async (req, res) => {
   try {
     const { name } = req.body;
 
-    // -----------------------------------------------
-    // VALIDATE INPUT
-    // -----------------------------------------------
+    // =================================================
+    // 1. VALIDATE INPUT
+    // =================================================
 
     if (!name || !name.trim()) {
       return res.status(400).json({
-        message: "Fruit name is required",
+        code: "EMPTY_FRUIT_NAME",
+        message:
+          "Please enter a fruit name.",
       });
     }
 
     const fruitName = name.trim();
 
-    // -----------------------------------------------
-    // 1. CHECK MONGODB FIRST
-    // -----------------------------------------------
+    // Prevent obviously useless requests.
+    // This saves Gemini calls for garbage input like
+    // extremely short strings.
+    if (fruitName.length < 2) {
+      return res.status(400).json({
+        code: "INVALID_FRUIT_NAME",
+        message:
+          "Please enter a valid fruit name.",
+      });
+    }
 
-    // Escape regex characters so an unusual fruit name
-    // cannot accidentally behave like a regex pattern.
+    // =================================================
+    // 2. CHECK MONGODB BY COMMON NAME FIRST
+    // =================================================
+
     const escapedFruitName =
       fruitName.replace(
         /[.*+?^${}()|[\]\\]/g,
@@ -313,72 +561,192 @@ const findOrCreateFruit = async (req, res) => {
       });
     }
 
-    // -----------------------------------------------
-    // 2. FETCH FROM WIKIPEDIA
-    // -----------------------------------------------
-
-    let wikiData;
-
-    try {
-      const wikiResponse = await axios.get(
-        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(
-          fruitName
-        )}`,
-        {
-          headers: {
-            "User-Agent":
-              "Pomona/1.0 (Educational Project)",
-            Accept: "application/json",
-          },
-        }
-      );
-
-      wikiData = wikiResponse.data;
-    } catch (wikiError) {
-      console.log(
-        "Wikipedia could not find this fruit:",
-        fruitName
-      );
-
-      return res.status(404).json({
-        message:
-          "Fruit not found in Wikipedia",
-      });
-    }
-
-    // -----------------------------------------------
-    // 3. ASK GEMINI TO GENERATE POMONA CONTENT
-    // -----------------------------------------------
+    // =================================================
+    // 3. GEMINI
+    // =================================================
 
     let aiData;
 
     try {
       aiData =
-        await generateFruitData(fruitName);
+        await generateFruitData(
+          fruitName
+        );
 
-      console.log(
-        `Gemini generated content for: ${fruitName}`
-      );
-    } catch (aiError) {
+      // -----------------------------------------------
+      // NOT A FRUIT
+      // -----------------------------------------------
+
+      if (
+        aiData.isFruit !== true
+      ) {
+        console.log(
+          `Gemini rejected input as a fruit: ${fruitName}`
+        );
+
+        return res.status(404).json({
+          code: "NOT_A_FRUIT",
+          message:
+            "This fruit doesn't seem to exist. Try another fruit name.",
+        });
+      }
+
+      // -----------------------------------------------
+      // SCIENTIFIC NAME REQUIRED
+      // -----------------------------------------------
+
+      if (
+        !aiData.latinName ||
+        !aiData.latinName.trim()
+      ) {
+        return res.status(422).json({
+          code: "SCIENTIFIC_NAME_UNAVAILABLE",
+          message:
+            "We couldn't identify the scientific name for this fruit right now.",
+        });
+      }
+    } catch (error) {
+      // -----------------------------------------------
+      // GEMINI QUOTA
+      // -----------------------------------------------
+
+      if (
+        error.code ===
+        "GEMINI_QUOTA_EXHAUSTED"
+      ) {
+        console.log(
+          "Gemini generation quota exhausted."
+        );
+
+        return res.status(429).json({
+          code:
+            "GEMINI_QUOTA_EXHAUSTED",
+          message:
+            "Fruit generation limit is currently reached. Please try again later.",
+        });
+      }
+
       console.error(
-        "========== GEMINI ERROR =========="
-      );
-
-      console.error(aiError);
-
-      console.error(
-        "=================================="
+        "Gemini generation failed:",
+        error
       );
 
       return res.status(500).json({
+        code: "GEMINI_ERROR",
         message:
-          "Fruit found, but AI information generation failed",
+          "We couldn't generate this fruit right now. Please try again.",
       });
     }
 
-    // -----------------------------------------------
-    // 4. FETCH WIKIMEDIA USING SCIENTIFIC NAME
-    // -----------------------------------------------
+    // =================================================
+    // 4. SCIENTIFIC IDENTITY
+    // =================================================
+
+    const scientificName =
+      aiData.latinName.trim();
+
+    console.log(
+      `Gemini identified ${fruitName} as ${scientificName}`
+    );
+
+    // =================================================
+    // 5. CHECK DATABASE BY SCIENTIFIC NAME
+    // =================================================
+
+    const escapedScientificName =
+      scientificName.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&"
+      );
+
+    const existingScientificFruit =
+      await Fruit.findOne({
+        latinName: {
+          $regex:
+            `^${escapedScientificName}$`,
+          $options: "i",
+        },
+      });
+
+    if (
+      existingScientificFruit
+    ) {
+      console.log(
+        `Scientific match already exists: ${existingScientificFruit.name}`
+      );
+
+      return res.status(200).json({
+        source: "database-scientific-match",
+        fruit:
+          existingScientificFruit,
+      });
+    }
+
+    // =================================================
+    // 6. WIKIPEDIA — SCIENTIFIC NAME FIRST
+    // =================================================
+
+    let wikiData = {};
+
+    try {
+      console.log(
+        `Searching Wikipedia using scientific name: ${scientificName}`
+      );
+
+      const wikiResponse =
+        await axios.get(
+          `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(
+            scientificName
+          )}`,
+          {
+            headers: {
+              "User-Agent":
+                "Pomona/1.0 (Educational Project)",
+              Accept:
+                "application/json",
+            },
+          }
+        );
+
+      wikiData =
+        wikiResponse.data || {};
+    } catch (wikiError) {
+      console.log(
+        `Wikipedia direct lookup failed for scientific name: ${scientificName}`
+      );
+
+      // ---------------------------------------------
+      // COMMON-NAME FALLBACK
+      // ---------------------------------------------
+
+      try {
+        const wikiResponse =
+          await axios.get(
+            `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(
+              fruitName
+            )}`,
+            {
+              headers: {
+                "User-Agent":
+                  "Pomona/1.0 (Educational Project)",
+                Accept:
+                  "application/json",
+              },
+            }
+          );
+
+        wikiData =
+          wikiResponse.data || {};
+      } catch {
+        console.log(
+          `Wikipedia fallback failed for ${fruitName}`
+        );
+      }
+    }
+
+    // =================================================
+    // 7. WIKIMEDIA
+    // =================================================
 
     let wikiImages = [];
 
@@ -386,9 +754,7 @@ const findOrCreateFruit = async (req, res) => {
       wikiImages =
         await searchWikimediaImages(
           fruitName,
-          aiData.latinName ||
-            wikiData.title ||
-            "",
+          scientificName,
           10
         );
 
@@ -401,40 +767,47 @@ const findOrCreateFruit = async (req, res) => {
         imageError.message
       );
 
-      // Image failure should NOT prevent the fruit
-      // from being created.
       wikiImages = [];
     }
 
-    // -----------------------------------------------
-    // 5. BUILD DATABASE DOCUMENT
-    // -----------------------------------------------
+    // =================================================
+    // 8. HERO + GALLERY
+    // =================================================
 
     const wikiHeroImage =
-      wikiData.thumbnail?.source || "";
+      wikiData.thumbnail?.source ||
+      wikiData.originalimage?.source ||
+      "";
 
     const fallbackHeroImage =
       wikiImages[0]?.url || "";
 
     const heroImage =
-      wikiHeroImage || fallbackHeroImage;
+      wikiHeroImage ||
+      fallbackHeroImage;
 
     const galleryImages = [
-      ...(heroImage ? [heroImage] : []),
+      ...(heroImage
+        ? [heroImage]
+        : []),
 
       ...wikiImages
-        .map((image) => image.url)
+        .map(
+          (image) => image.url
+        )
         .filter(
-          (url) => url && url !== heroImage
+          (url) =>
+            url &&
+            url !== heroImage
         )
         .slice(0, 7),
     ];
 
-    const fruitData = {
-      // ---------------------------------------------
-      // BASIC INFORMATION
-      // ---------------------------------------------
+    // =================================================
+    // 9. BUILD DATABASE DOCUMENT
+    // =================================================
 
+    const fruitData = {
       name: fruitName,
 
       latinName:
@@ -450,27 +823,25 @@ const findOrCreateFruit = async (req, res) => {
         aiData.species || "",
 
       origin:
-        aiData.originHistory?.originRegion ||
-        "",
+        aiData.originHistory
+          ?.originRegion || "",
 
       overview:
         wikiData.extract || "",
 
       wikipediaTitle:
-        wikiData.title || fruitName,
-
-      // ---------------------------------------------
-      // ORIGIN & HISTORY
-      // ---------------------------------------------
+        wikiData.title ||
+        fruitName,
 
       originHistory: {
         summary:
-          aiData.originHistory?.summary ||
-          "",
+          aiData.originHistory
+            ?.summary || "",
 
         detailedHistory:
           aiData.originHistory
-            ?.detailedHistory || "",
+            ?.detailedHistory ||
+          "",
 
         originRegion:
           aiData.originHistory
@@ -478,73 +849,76 @@ const findOrCreateFruit = async (req, res) => {
 
         historicalSpread:
           aiData.originHistory
-            ?.historicalSpread || "",
+            ?.historicalSpread ||
+          "",
 
         culturalImportance:
           aiData.originHistory
-            ?.culturalImportance || "",
+            ?.culturalImportance ||
+          "",
       },
-
-      // ---------------------------------------------
-      // IMAGES
-      // ---------------------------------------------
 
       heroImage,
 
-      gallery: galleryImages,
+      gallery:
+        galleryImages,
 
-      // For now these are selected from the
-      // best Wikimedia results. Later we can make
-      // dedicated searches for historical/maps.
       originImages:
         wikiImages
           .slice(1, 4)
-          .map((image) => image.url),
+          .map(
+            (image) =>
+              image.url
+          ),
 
       historicalImages:
         wikiImages
           .slice(4, 7)
-          .map((image) => image.url),
+          .map(
+            (image) =>
+              image.url
+          ),
 
       mapImage: "",
-
-      // ---------------------------------------------
-      // DETAILED CONTENT
-      // ---------------------------------------------
 
       nutrition:
         aiData.nutrition || "",
 
       growingConditions:
-        aiData.growingConditions || "",
+        aiData.growingConditions ||
+        "",
 
       harvest: {
-      description:
-      aiData.harvest?.description || "",
+        description:
+          aiData.harvest
+            ?.description || "",
 
-      seasons:
-       Array.isArray(aiData.harvest?.seasons)
-       ? aiData.harvest.seasons
-       : [],
+        seasons:
+          Array.isArray(
+            aiData.harvest?.seasons
+          )
+            ? aiData.harvest
+                .seasons
+            : [],
 
-      months:
-       Array.isArray(aiData.harvest?.months)
-       ? aiData.harvest.months
-       : [],
-},
+        months:
+          Array.isArray(
+            aiData.harvest?.months
+          )
+            ? aiData.harvest
+                .months
+            : [],
+      },
 
       diseases:
         aiData.diseases || "",
 
       companionPlants:
-        aiData.companionPlants || "",
+        aiData.companionPlants ||
+        "",
 
       cultivars:
         aiData.cultivars || "",
-
-      // ---------------------------------------------
-      // FACTS
-      // ---------------------------------------------
 
       interestingFacts:
         Array.isArray(
@@ -560,10 +934,6 @@ const findOrCreateFruit = async (req, res) => {
           ? aiData.scientificFacts
           : [],
 
-      // ---------------------------------------------
-      // OPTIONAL / FUTURE
-      // ---------------------------------------------
-
       healthBenefits: [],
 
       storage: "",
@@ -571,37 +941,36 @@ const findOrCreateFruit = async (req, res) => {
       tags: [],
     };
 
-    // -----------------------------------------------
-    // 6. SAVE TO MONGODB
-    // -----------------------------------------------
+    // =================================================
+    // 10. SAVE
+    // =================================================
 
     const newFruit =
-      await Fruit.create(fruitData);
+      await Fruit.create(
+        fruitData
+      );
 
     console.log(
       `New fruit created: ${newFruit.name}`
     );
-
-    // -----------------------------------------------
-    // 7. RETURN NEW FRUIT
-    // -----------------------------------------------
 
     return res.status(201).json({
       source: "created",
       fruit: newFruit,
     });
   } catch (error) {
-    console.log(
+    console.error(
       "findOrCreateFruit error:",
       error
     );
 
-    res.status(500).json({
-      message: error.message,
+    return res.status(500).json({
+      code: "FRUIT_GENERATION_ERROR",
+      message:
+        "Something went wrong while generating this fruit.",
     });
   }
 };
-
 
 // =====================================================
 // EXPORTS
