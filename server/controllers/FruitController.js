@@ -319,10 +319,7 @@ const getFruitById = async (
 // GET FRUIT DETAILS
 // =====================================================
 
-const getFruitDetails = async (
-  req,
-  res
-) => {
+const getFruitDetails = async (req, res) => {
   try {
     const fruit =
       await Fruit.findById(
@@ -335,24 +332,78 @@ const getFruitDetails = async (
       });
     }
 
-    const wikiResponse =
-      await getWikipediaSummary(
-        fruit.wikipediaTitle ||
-          fruit.name
-      );
+    let wikipedia = {};
+
+    // =================================================
+    // 1. TRY STORED WIKIPEDIA TITLE
+    // =================================================
+
+    const wikipediaTitle =
+      fruit.wikipediaTitle?.trim();
+
+    const scientificName =
+      fruit.latinName?.trim();
+
+    const possibleTitles = [
+      wikipediaTitle,
+      scientificName,
+    ].filter(Boolean);
+
+    for (
+      const title of possibleTitles
+    ) {
+      try {
+        console.log(
+          `📚 Fetching Wikipedia: ${title}`
+        );
+
+        const response =
+          await axios.get(
+            `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(
+              title
+            )}`,
+            {
+              headers: {
+                "User-Agent":
+                  "Pomona/1.0 (Educational Project)",
+                Accept:
+                  "application/json",
+              },
+
+              timeout: 8000,
+            }
+          );
+
+        wikipedia =
+          response.data || {};
+
+        break;
+      } catch (wikiError) {
+        console.log(
+          `⚠ Wikipedia page unavailable: ${title}`
+        );
+      }
+    }
+
+    // =================================================
+    // 2. DO NOT FAIL THE ENTIRE FRUIT IF WIKIPEDIA
+    //    IS MISSING
+    // =================================================
 
     return res.status(200).json({
       fruit,
-      wikipedia: wikiResponse,
+
+      wikipedia,
     });
   } catch (error) {
-    console.log(
+    console.error(
       "Fruit details error:",
       error
     );
 
     return res.status(500).json({
-      message: error.message,
+      message:
+        "Failed to load fruit details.",
     });
   }
 };

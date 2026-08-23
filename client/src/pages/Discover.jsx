@@ -71,19 +71,28 @@ function Discover() {
   const [searchResults, setSearchResults] = useState([]);
 
   // ===================================================
+  // SEARCH ERROR
+  // ===================================================
+
+  const [searchError, setSearchError] =
+    useState("");
+
+  // ===================================================
   // SEASON FILTER
   // ===================================================
 
   const [selectedSeason, setSelectedSeason] =
     useState("All");
 
-  const [filterOpen, setFilterOpen] = useState(false);
+  const [filterOpen, setFilterOpen] =
+    useState(false);
 
   // ===================================================
   // AI / FRUIT CREATION
   // ===================================================
 
-  const [creatingFruit, setCreatingFruit] = useState(false);
+  const [creatingFruit, setCreatingFruit] =
+    useState(false);
 
   const loader = useRef(null);
 
@@ -114,7 +123,10 @@ function Discover() {
         ...response.data.fruits,
       ]);
 
-      if (page >= response.data.totalPages) {
+      if (
+        page >=
+        response.data.totalPages
+      ) {
         setHasMore(false);
       }
     } catch (error) {
@@ -139,6 +151,12 @@ function Discover() {
     }
 
     // -----------------------------------------------
+    // CLEAR PREVIOUS ERROR
+    // -----------------------------------------------
+
+    setSearchError("");
+
+    // -----------------------------------------------
     // EXISTING FRUIT
     // -----------------------------------------------
 
@@ -147,6 +165,7 @@ function Discover() {
 
       setSearchQuery("");
       setSearchResults([]);
+      setSearchError("");
 
       navigate(`/fruit/${fruit._id}`);
 
@@ -171,12 +190,63 @@ function Discover() {
 
       // Keep search visible and replace
       // the loading state with the new card.
+      setSearchError("");
       setSearchResults([fruit]);
     } catch (error) {
       console.error(
         "Failed to create/search fruit:",
         error
       );
+
+      const code =
+        error.response?.data?.code;
+
+      const message =
+        error.response?.data?.message;
+
+      // ---------------------------------------------
+      // NOT A FRUIT
+      // ---------------------------------------------
+
+      if (
+        code === "NOT_A_FRUIT"
+      ) {
+        setSearchError(
+          "This fruit doesn't seem to exist."
+        );
+
+        setSearchResults([]);
+
+        return;
+      }
+
+      // ---------------------------------------------
+      // GEMINI QUOTA
+      // ---------------------------------------------
+
+      if (
+        code ===
+        "GEMINI_QUOTA_EXHAUSTED"
+      ) {
+        setSearchError(
+          "Fruit generation limit is currently reached. Please try again later."
+        );
+
+        setSearchResults([]);
+
+        return;
+      }
+
+      // ---------------------------------------------
+      // OTHER ERROR
+      // ---------------------------------------------
+
+      setSearchError(
+        message ||
+          "Something went wrong while discovering this fruit. Please try again."
+      );
+
+      setSearchResults([]);
     } finally {
       setCreatingFruit(false);
     }
@@ -223,7 +293,9 @@ function Discover() {
         );
 
         if (!cancelled) {
-          setSearchResults(response.data);
+          setSearchResults(
+            response.data
+          );
         }
       } catch (error) {
         if (!cancelled) {
@@ -241,7 +313,20 @@ function Discover() {
       cancelled = true;
       clearTimeout(timeout);
     };
-  }, [searchQuery, creatingFruit]);
+  }, [
+    searchQuery,
+    creatingFruit,
+  ]);
+
+  // ===================================================
+  // CLEAR SEARCH ERROR WHEN USER TYPES
+  // ===================================================
+
+  useEffect(() => {
+    if (searchError) {
+      setSearchError("");
+    }
+  }, [searchQuery]);
 
   // ===================================================
   // RESET PAGINATION
@@ -256,7 +341,10 @@ function Discover() {
     } else {
       setHasMore(true);
     }
-  }, [searchQuery, creatingFruit]);
+  }, [
+    searchQuery,
+    creatingFruit,
+  ]);
 
   // ===================================================
   // INFINITE SCROLL
@@ -279,9 +367,13 @@ function Discover() {
             !loading &&
             hasMore
           ) {
-            console.log("INTERSECTED");
+            console.log(
+              "INTERSECTED"
+            );
 
-            setPage((prev) => prev + 1);
+            setPage(
+              (prev) => prev + 1
+            );
           }
         },
         {
@@ -290,7 +382,9 @@ function Discover() {
       );
 
     if (loader.current) {
-      observer.observe(loader.current);
+      observer.observe(
+        loader.current
+      );
     }
 
     return () => {
@@ -319,20 +413,28 @@ function Discover() {
   const filteredFruits =
     selectedSeason === "All"
       ? displayedFruits
-      : displayedFruits.filter((fruit) => {
-          const fruitSeasons =
-            fruit.harvest?.seasons;
+      : displayedFruits.filter(
+          (fruit) => {
+            const fruitSeasons =
+              fruit.harvest?.seasons;
 
-          if (!Array.isArray(fruitSeasons)) {
-            return false;
+            if (
+              !Array.isArray(
+                fruitSeasons
+              )
+            ) {
+              return false;
+            }
+
+            return fruitSeasons.some(
+              (season) =>
+                season
+                  .toLowerCase() ===
+                selectedSeason
+                  .toLowerCase()
+            );
           }
-
-          return fruitSeasons.some(
-            (season) =>
-              season.toLowerCase() ===
-              selectedSeason.toLowerCase()
-          );
-        });
+        );
 
   // ===================================================
   // RENDER
@@ -344,10 +446,16 @@ function Discover() {
         light
         showFilter
         seasons={seasons}
-        selectedSeason={selectedSeason}
-        setSelectedSeason={setSelectedSeason}
+        selectedSeason={
+          selectedSeason
+        }
+        setSelectedSeason={
+          setSelectedSeason
+        }
         filterOpen={filterOpen}
-        setFilterOpen={setFilterOpen}
+        setFilterOpen={
+          setFilterOpen
+        }
         logoLinksHome={false}
       />
 
@@ -377,7 +485,12 @@ function Discover() {
             transition={{
               delay: 0.35,
               duration: 0.8,
-              ease: [0.22, 1, 0.36, 1],
+              ease: [
+                0.22,
+                1,
+                0.36,
+                1,
+              ],
             }}
           >
             Discover Every Fruit.
@@ -396,18 +509,87 @@ function Discover() {
             transition={{
               delay: 0.55,
               duration: 0.7,
-              ease: [0.22, 1, 0.36, 1],
+              ease: [
+                0.22,
+                1,
+                0.36,
+                1,
+              ],
             }}
           >
-            Search through nature's most
-            beautiful collection.
+            Search through nature's
+            most beautiful collection.
           </motion.p>
 
           <SearchBar
             value={searchQuery}
-            onChange={setSearchQuery}
-            onSubmit={handleSearchSubmit}
+            onChange={(value) => {
+              setSearchQuery(
+                value
+              );
+
+              if (searchError) {
+                setSearchError("");
+              }
+            }}
+            onSubmit={
+              handleSearchSubmit
+            }
           />
+
+          {/* =========================================
+              SEARCH HINT
+          ========================================= */}
+
+          {searchQuery.trim() && (
+  <motion.p
+    className="fruit-search-hint"
+    initial={{
+      opacity: 0,
+      y: -4,
+    }}
+    animate={{
+      opacity: 1,
+      y: 0,
+    }}
+    transition={{
+      duration: 0.25,
+      ease: [0.22, 1, 0.36, 1],
+    }}
+  >
+    Please search fruits only — random searches
+    cost Pomona a little AI juice. :)
+  </motion.p>
+)}
+
+          {/* =========================================
+              SEARCH ERROR
+          ========================================= */}
+
+          {searchError && (
+            <motion.p
+              className="fruit-search-error"
+              initial={{
+                opacity: 0,
+                y: -5,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              transition={{
+                duration: 0.25,
+                ease: [
+                  0.22,
+                  1,
+                  0.36,
+                  1,
+                ],
+              }}
+            >
+              {searchError}
+            </motion.p>
+          )}
         </section>
 
         {/* =========================================
@@ -417,21 +599,34 @@ function Discover() {
         <section className="discover-content">
           {creatingFruit ? (
             <FruitGenerationLoading />
+          ) : searchError ? (
+            <div className="search-empty search-error-state">
+              <p>
+                {searchError}
+              </p>
+
+              <span>
+                Try another fruit name.
+              </span>
+            </div>
           ) : searchQuery.trim() &&
             searchResults.length === 0 ? (
             <div className="search-empty">
               <p>
-                No fruit found in the collection.
+                No fruit found in the
+                collection.
               </p>
 
               <span>
-                Press Enter ↵ to discover it.
+                Press Enter ↵ to
+                discover it.
               </span>
             </div>
           ) : (
             <motion.div
               key={
-                searchResults.length > 0
+                searchResults.length >
+                0
                   ? searchResults[0]?._id
                   : `grid-${selectedSeason}`
               }
@@ -445,22 +640,32 @@ function Discover() {
               }}
               transition={{
                 duration: 0.55,
-                ease: [0.22, 1, 0.36, 1],
+                ease: [
+                  0.22,
+                  1,
+                  0.36,
+                  1,
+                ],
               }}
             >
-              {filteredFruits.length > 0 ? (
+              {filteredFruits.length >
+              0 ? (
                 <MasonryGrid
-                  fruits={filteredFruits}
+                  fruits={
+                    filteredFruits
+                  }
                 />
               ) : (
                 <div className="search-empty">
                   <p>
-                    No fruits found for{" "}
+                    No fruits found
+                    for{" "}
                     {selectedSeason}.
                   </p>
 
                   <span>
-                    Try another season.
+                    Try another
+                    season.
                   </span>
                 </div>
               )}
@@ -473,6 +678,7 @@ function Discover() {
 
           {!searchQuery.trim() &&
             !creatingFruit &&
+            !searchError &&
             hasMore && (
               <div
                 ref={loader}

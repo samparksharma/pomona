@@ -372,3 +372,80 @@
          columns: 1;
      }
  }
+
+ .fruit-search-hint {
+     margin-top: 12px;
+
+     max-width: 420px;
+
+     margin-left: auto;
+     margin-right: auto;
+
+     font-family:
+         "Inter",
+         sans-serif;
+
+     font-size: 11px;
+
+     line-height: 1.5;
+
+     text-align: center;
+
+     color:
+         rgba(17, 17, 17, 0.48);
+
+     transition:
+         color 0.25s ease,
+         opacity 0.25s ease;
+ }
+
+ .fruit-search-hint:hover {
+     color:
+         rgba(17, 17, 17, 0.68);
+ }
+
+
+ /* =========================================
+   SEARCH ERROR
+========================================= */
+
+ .fruit-search-error {
+     margin-top: 12px;
+
+     font-family:
+         "Inter",
+         sans-serif;
+
+     font-size: 12px;
+
+     line-height: 1.5;
+
+     text-align: center;
+
+     color:
+         #9b4444;
+ }
+
+
+ /* =========================================
+   ERROR CONTENT STATE
+========================================= */
+
+ .search-error-state {
+     animation:
+         discoverSearchErrorIn 0.3s ease;
+ }
+
+ @keyframes discoverSearchErrorIn {
+     from {
+         opacity: 0;
+         transform:
+             translateY(6px);
+     }
+
+     to {
+         opacity: 1;
+         transform:
+             translateY(0);
+     }
+ }

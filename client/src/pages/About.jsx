@@ -56,12 +56,18 @@ const timelineItems = [
   },
   {
     id: 7,
+    question: "Was it ever really about fruits?",
+    answer:
+      "Probably not. Fruits were just where I decided to start. Somewhere along the way, it became less about collecting facts and more about learning how to look at things again. To slow down, staring at a weird fruit named 'peanut butter' or sometimes spend an unreasonable amount of time making something nobody really asked for. But....Maybe that was the whole point!, To make something that felt like me — something a little unnecessary, a little obsessive, and hopefully a little beautiful. Something that reminded me that I still had the ability to care about a silly little idea enough to turn it into something real.",
+  },
+  {
+    id: 8,
     question: "So What's next?",
     answer:
       "you know what? actually I don't know this could either be mine , more experiments, more stories, and more things worth discovering arc or maybe I am just again gonna play the rotting game in my bed till i get the next idea that feels like me :D.",
   },
   {
-    id: 8,
+    id: 9,
     question: "but! why keep building?",
     answer:
       "Because curiosity is a pretty good reason to be alive on this planet I guess .",
@@ -366,7 +372,7 @@ function About() {
     <span className="about-climax-dot" />
 
     <span>
-      Read slowly to reach the climax.
+      please use headphones for the best experience.
     </span>
   </div>
 )}
