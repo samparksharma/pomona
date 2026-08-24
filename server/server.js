@@ -19,6 +19,7 @@ const app = express();
 
 app.use(express.json());
 
+// Allowed frontend origins
 const allowedOrigins = [
   "http://localhost:5173",
   "https://pomona-fruits.vercel.app",
@@ -72,9 +73,6 @@ app.get("/", (req, res) => {
 // =====================================================
 // SERVER
 // =====================================================
-
-// Render provides PORT in production.
-// 5000 remains the local-development fallback.
 
 const PORT = process.env.PORT || 5000;
 
