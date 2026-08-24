@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import API_URL from "../services/api";
 import {
   FiSun,
   FiSunrise,
@@ -106,9 +106,9 @@ function Discover() {
     try {
       setLoading(true);
 
-      const response = await axios.get(
-        `http://localhost:5000/api/fruits?page=${page}&limit=15&seed=${randomSeed}`
-      );
+     const response = await axios.get(
+  `${API_URL}/api/fruits?page=${page}&limit=15&seed=${randomSeed}`
+);
 
       console.log(
         "PAGE:",
@@ -180,11 +180,11 @@ function Discover() {
       setCreatingFruit(true);
 
       const response = await axios.post(
-        "http://localhost:5000/api/fruits/find-or-create",
-        {
-          name: query,
-        }
-      );
+  `${API_URL}/api/fruits/find-or-create`,
+  {
+    name: query,
+  }
+);
 
       const fruit = response.data.fruit;
 
@@ -287,10 +287,10 @@ function Discover() {
     const timeout = setTimeout(async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/fruits/search?q=${encodeURIComponent(
-            query
-          )}`
-        );
+  `${API_URL}/api/fruits/search?q=${encodeURIComponent(
+    query
+  )}`
+);
 
         if (!cancelled) {
           setSearchResults(

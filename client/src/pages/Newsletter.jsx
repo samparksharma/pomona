@@ -15,7 +15,7 @@ import axios from "axios";
 
 import Navbar from "../components/layout/Navbar";
 import meImage from "../assets/images/me.png";
-
+import API_URL from "../services/api";
 function Newsletter() {
   const location = useLocation();
 
@@ -92,7 +92,7 @@ function Newsletter() {
     try {
       const response =
         await axios.post(
-          "http://localhost:5000/api/newsletter/subscribe",
+          `${API_URL}/api/newsletter/subscribe`,
           {
             email: cleanEmail,
           },

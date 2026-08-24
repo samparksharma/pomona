@@ -6,6 +6,7 @@ import FruitLoading from "../components/fruit/FruitLoading";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import API_URL from "../services/api";
 import "./FruitDetails.css";
 
 function FruitDetails() {
@@ -19,9 +20,9 @@ function FruitDetails() {
 
   async function fetchFruit() {
     try {
-      const response = await axios.get(
-        `http://localhost:5000/api/fruits/${id}/details`
-      );
+     const response = await axios.get(
+  `${API_URL}/api/fruits/${id}/details`
+);
 
       setFruit(response.data);
     } catch (error) {

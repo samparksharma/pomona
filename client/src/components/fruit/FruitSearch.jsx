@@ -7,7 +7,7 @@ import {
 } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import API_URL from "../../services/api";
 function FruitSearch() {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] =
@@ -34,7 +34,7 @@ function FruitSearch() {
     const timeout = setTimeout(async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/fruits/search?q=${encodeURIComponent(
+          `${API_URL}/api/fruits/search?q=${encodeURIComponent(
             query.trim()
           )}`
         );

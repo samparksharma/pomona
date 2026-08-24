@@ -15,6 +15,8 @@ import {
   FiX,
 } from "react-icons/fi";
 
+import API_URL from "../services/api";
+
 function VerifyEmail() {
   const [
     searchParams,
@@ -51,7 +53,7 @@ function VerifyEmail() {
       try {
         const response =
           await axios.get(
-            "http://localhost:5000/api/auth/verify-email",
+            `${API_URL}/api/auth/verify-email`,
             {
               params: {
                 token,

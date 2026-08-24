@@ -9,7 +9,7 @@ import {
 import axios from "axios";
 
 import { useAuth } from "./AuthContext";
-
+import API_URL from "../../services/api";
 import {
   FiEye,
   FiEyeOff,
@@ -17,7 +17,7 @@ import {
   FiCheck,
 } from "react-icons/fi";
 
-const API_URL = "http://localhost:5000";
+
 
 const WATCHER_KEY =
   "pomonaVerificationWatcher";

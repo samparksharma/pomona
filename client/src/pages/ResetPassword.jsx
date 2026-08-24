@@ -15,6 +15,7 @@ import {
   FiEyeOff,
   FiLock,
 } from "react-icons/fi";
+import API_URL from "../services/api";
 
 import "../components/auth/AuthModal.css";
 
@@ -110,7 +111,7 @@ function ResetPassword() {
     try {
       const response =
         await axios.post(
-          "http://localhost:5000/api/auth/reset-password",
+          `${API_URL}/api/auth/reset-password`,
           {
             token,
             email,
