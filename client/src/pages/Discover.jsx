@@ -130,11 +130,13 @@ function Discover() {
         setHasMore(false);
       }
     } catch (error) {
-      console.error(
-        "Failed to fetch fruits:",
-        error
-      );
-    } finally {
+  console.error(
+    "Failed to fetch fruits:",
+    error
+  );
+
+  setHasMore(false);
+} finally {
       setLoading(false);
     }
   };

@@ -5,40 +5,17 @@ const SAFE_METHODS = new Set([
 ]);
 
 const getAllowedOrigins = () => {
-  const configuredOrigins =
-    process.env.CLIENT_URLS || "";
-
-  const origins = configuredOrigins
+  return (process.env.CLIENT_URL || "")
     .split(",")
     .map((origin) =>
       origin.trim().replace(/\/$/, "")
     )
     .filter(Boolean);
-
-  // Always allow local development.
-  if (
-    !origins.includes(
-      "http://localhost:5173"
-    )
-  ) {
-    origins.push(
-      "http://localhost:5173"
-    );
-  }
-
-  return origins;
 };
 
-const csrfProtection = (
-  req,
-  res,
-  next
-) => {
-  // Safe requests don't change
-  // server state.
-  if (
-    SAFE_METHODS.has(req.method)
-  ) {
+const csrfProtection = (req, res, next) => {
+  // Safe requests don't change server state.
+  if (SAFE_METHODS.has(req.method)) {
     return next();
   }
 
@@ -46,30 +23,26 @@ const csrfProtection = (
     .get("origin")
     ?.replace(/\/$/, "");
 
-  const allowedOrigins =
-    getAllowedOrigins();
+  const allowedOrigins = getAllowedOrigins();
 
-  // During local development,
-  // Postman/curl may not send an
-  // Origin header.
+  // During local development, tools like
+  // Postman/curl may not send an Origin header.
   if (
     !origin &&
-    process.env.NODE_ENV !==
-      "production"
+    process.env.NODE_ENV !== "production"
   ) {
     return next();
   }
 
+  // Reject requests whose origin isn't allowed.
   if (
     !origin ||
     !allowedOrigins.includes(origin)
   ) {
     return res.status(403).json({
       success: false,
-      message:
-        "Forbidden request origin.",
-      code:
-        "CSRF_ORIGIN_REJECTED",
+      message: "Forbidden request origin.",
+      code: "CSRF_ORIGIN_REJECTED",
     });
   }
 

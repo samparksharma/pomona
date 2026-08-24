@@ -19,17 +19,14 @@ const app = express();
 
 app.use(express.json());
 
-// Allowed frontend origins
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://pomona-fruits.vercel.app",
+  "https://pomona-sigma.vercel.app",
 ];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin
-      // (Postman, server-to-server, etc.)
       if (!origin) {
         return callback(null, true);
       }
@@ -63,7 +60,7 @@ app.use("/api/newsletter", newsletterRoutes);
 app.use("/api/auth", authRoutes);
 
 // =====================================================
-// HEALTH / ROOT ROUTE
+// ROOT
 // =====================================================
 
 app.get("/", (req, res) => {
