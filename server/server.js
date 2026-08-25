@@ -13,6 +13,8 @@ const csrfProtection = require("./middleware/csrfMiddleware");
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 // =====================================================
 // MIDDLEWARE
 // =====================================================
