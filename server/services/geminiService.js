@@ -73,6 +73,23 @@ function isQuotaError(error) {
 }
 
 // -----------------------------------------
+// DETECT TEMPORARY SERVER ERROR
+// -----------------------------------------
+
+function isTemporaryServerError(error) {
+  const status =
+    error?.status ||
+    error?.response?.status;
+
+  return (
+    status === 500 ||
+    status === 502 ||
+    status === 503 ||
+    status === 504
+  );
+}
+
+// -----------------------------------------
 // GET NEXT AVAILABLE KEY
 // -----------------------------------------
 
@@ -288,6 +305,7 @@ and leave every other field empty.
   // ===================================================
 
   let keysAttempted = 0;
+  let temporaryServiceFailures = 0;
 
   while (
     keysAttempted < clients.length
@@ -296,7 +314,7 @@ and leave every other field empty.
       getNextAvailableKey();
 
     // -----------------------------------------------
-    // ALL KEYS EXHAUSTED
+    // ALL QUOTA-EXHAUSTED KEYS
     // -----------------------------------------------
 
     if (keyIndex === -1) {
@@ -572,7 +590,7 @@ and leave every other field empty.
           );
 
           console.log(
-            `➡ Switching to next Gemini key...`
+            "➡ Switching to next Gemini key..."
           );
 
           // Stop retrying this key.
@@ -583,43 +601,69 @@ and leave every other field empty.
         // TEMPORARY SERVER ERRORS
         // -----------------------------------------
 
-        const status =
-          error?.status;
-
-        const retryable =
-          status === 500 ||
-          status === 503;
-
         if (
-          retryable &&
-          attempt <
-            maxRetries
+          isTemporaryServerError(error)
         ) {
-          const delay =
-            Math.pow(
-              2,
-              attempt
-            ) * 1000;
+          if (
+            attempt <
+            maxRetries
+          ) {
+            const delay =
+              Math.pow(
+                2,
+                attempt
+              ) * 1000;
+
+            console.log(
+              `⚠ Gemini temporary error (${error?.status || "unknown"}).`
+            );
+
+            console.log(
+              `🔁 Retrying in ${
+                delay / 1000
+              } seconds...`
+            );
+
+            await new Promise(
+              (resolve) =>
+                setTimeout(
+                  resolve,
+                  delay
+                )
+            );
+
+            continue;
+          }
+
+          // ---------------------------------------
+          // CURRENT KEY FAILED TEMPORARILY
+          // ---------------------------------------
+
+          temporaryServiceFailures++;
 
           console.log(
-            `⚠ Gemini temporary error (${status}).`
+            `⚠ Gemini key ${
+              keyIndex + 1
+            } is temporarily unavailable after ${
+              maxRetries + 1
+            } attempts.`
           );
 
-          console.log(
-            `🔁 Retrying in ${
-              delay / 1000
-            } seconds...`
-          );
+          if (
+            keysAttempted <
+            clients.length
+          ) {
+            currentKeyIndex =
+              (keyIndex + 1) %
+              clients.length;
 
-          await new Promise(
-            (resolve) =>
-              setTimeout(
-                resolve,
-                delay
-              )
-          );
+            console.log(
+              "➡ Trying the next Gemini key..."
+            );
+          }
 
-          continue;
+          // Move to next key.
+          break;
         }
 
         // -----------------------------------------
@@ -654,12 +698,32 @@ and leave every other field empty.
         }
 
         // -----------------------------------------
-        // FINAL ERROR FOR CURRENT KEY
+        // UNKNOWN / NON-RETRYABLE ERROR
         // -----------------------------------------
 
         throw error;
       }
     }
+  }
+
+  // ===================================================
+  // TEMPORARY GEMINI SERVICE FAILURE
+  // ===================================================
+
+  if (
+    temporaryServiceFailures > 0
+  ) {
+    const temporaryError =
+      new Error(
+        "Gemini is temporarily unavailable. Please try again later."
+      );
+
+    temporaryError.code =
+      "GEMINI_TEMPORARY_UNAVAILABLE";
+
+    temporaryError.status = 503;
+
+    throw temporaryError;
   }
 
   // ===================================================

@@ -638,7 +638,7 @@ const findOrCreateFruit = async (req, res) => {
         return res.status(404).json({
           code: "NOT_A_FRUIT",
           message:
-            "This fruit doesn't seem to exist. Try another fruit name.",
+            "This fruit doesn't seem to exist. Try using a real fruit.",
         });
       }
 
@@ -685,7 +685,7 @@ const findOrCreateFruit = async (req, res) => {
       return res.status(500).json({
         code: "GEMINI_ERROR",
         message:
-          "We couldn't generate this fruit right now. Please try again.",
+          "Pomona is experiencing . Please try again later.",
       });
     }
 
