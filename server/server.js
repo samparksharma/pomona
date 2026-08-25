@@ -19,14 +19,24 @@ const app = express();
 
 app.use(express.json());
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://pomona-sigma.vercel.app",
-];
+// Read allowed frontend origins from CLIENT_URL.
+// Example:
+// CLIENT_URL=http://localhost:5173,https://pomonaa.vercel.app
+
+const allowedOrigins = (
+  process.env.CLIENT_URL || ""
+)
+  .split(",")
+  .map((origin) =>
+    origin.trim().replace(/\/$/, "")
+  )
+  .filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
+      // Allow requests with no Origin header
+      // such as server-to-server requests.
       if (!origin) {
         return callback(null, true);
       }
