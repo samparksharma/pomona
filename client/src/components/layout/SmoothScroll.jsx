@@ -1,5 +1,7 @@
 import { useEffect } from "react";
+
 import Lenis from "lenis";
+
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -7,11 +9,29 @@ gsap.registerPlugin(ScrollTrigger);
 
 function SmoothScroll({ children }) {
   useEffect(() => {
+    // Respect reduced-motion preferences.
+    const prefersReducedMotion =
+      window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+
+    if (prefersReducedMotion) {
+      return;
+    }
+
     const lenis = new Lenis({
       autoRaf: false,
-      duration: 0.8,
+
+      // Lower duration makes the scroll feel
+      // more responsive and less "heavy".
+      duration: 0.55,
+
       smoothWheel: true,
+
       syncTouch: false,
+
+      // Slightly more responsive interpolation.
+      lerp: 0.09,
     });
 
     const updateScrollTrigger = () => {
@@ -29,9 +49,9 @@ function SmoothScroll({ children }) {
 
     gsap.ticker.add(update);
 
-    // Let GSAP handle temporary frame drops
-    // instead of forcing every frame through.
-    gsap.ticker.lagSmoothing(500, 33);
+    // Don't force large frame jumps to catch up
+    // aggressively after a temporary frame drop.
+    gsap.ticker.lagSmoothing(1000, 60);
 
     return () => {
       lenis.off(

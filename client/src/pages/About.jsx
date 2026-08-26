@@ -22,7 +22,7 @@ const timelineItems = [
     id: 1,
     question: "Who am I?",
     answer:
-      "Hey I am sampark, a 19year old developer from India and i love to exaggerate my silly  little ideas, Pomona is my first proper project that i finished completely and is now live, It took a lot of time but i am just really happy that it is now completed! I just like, when my tech has little personality   ",
+      "Hey I am sampark, a 19year old developer from India and i love to exaggerate my silly  little ideas, Pomona is my first proper project that i finished completely and is now live, It took a lot of time but i am just really happy that it is now completed! I just really like when my tech has some personality   ",
   },
   {
     id: 2,
@@ -58,13 +58,13 @@ const timelineItems = [
     id: 7,
     question: "Was it ever really about fruits?",
     answer:
-      "Probably not. Fruits were just where I decided to start. Somewhere along the way, it became less about collecting facts and more about learning how to look at things again. To slow down, staring at a weird fruit named 'peanut butter' or sometimes spend an unreasonable amount of time making something nobody really asked for. But....Maybe that was the whole point!, To make something that felt like me — something a little unnecessary, a little obsessive, and hopefully a little beautiful. Something that reminded me that I still had the ability to care about a silly little idea enough to turn it into something real.",
+      "Probably not. Fruits were just where I decided to start. Somewhere along the way, it became less about collecting facts and more about learning how to look at things again. To slow down, staring at a weird fruit named 'peanut butter' or sometimes spend an unreasonable amount of time making something nobody really asked for. But....Maybe that was the whole point!.",
   },
   {
     id: 8,
     question: "So What's next?",
     answer:
-      "you know what? actually I don't know this could either be mine , more experiments, more stories, and more things worth discovering arc or maybe I am just again gonna play the rotting game in my bed till i get the next idea that feels like me :D.",
+      "you know what? actually I don't know, This could either be mine , more experiments, more stories, and more things worth discovering arc or maybe I am just again gonna play the rotting game in my bed till i get the next idea that feels like me :D.",
   },
   {
     id: 9,

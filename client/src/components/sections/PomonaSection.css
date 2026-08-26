@@ -6,17 +6,30 @@
     position: relative;
 
     width: 100%;
+
     min-height: 100vh;
 
     overflow: hidden;
 
     display: flex;
+
     align-items: center;
+
     justify-content: center;
 
     background: #111111;
 
+    /*
+    Required for the 3D mouse tilt.
+    Without perspective, rotateX/rotateY
+    can look almost flat.
+  */
     perspective: 1200px;
+
+    /*
+    Keeps the 3D artwork inside this section.
+  */
+    transform-style: preserve-3d;
 }
 
 
@@ -27,21 +40,41 @@
 .pomona-section-image {
     position: absolute;
 
-    inset: -7%;
+    inset: 0;
 
     z-index: 0;
 
-    background-position: center;
-    background-size: cover;
+    /*
+    Keep the complete artwork visible.
+  */
+    background-position: center center;
+
+    background-size: contain;
+
     background-repeat: no-repeat;
 
-    transform:
-        scale(1.20) translateZ(0);
+    background-color: #111111;
+
+    /*
+    IMPORTANT:
+    GSAP controls these transform properties.
+  */
+    transform-origin: center center;
 
     transform-style: preserve-3d;
 
+    /*
+    Helps browsers keep the animation on the
+    compositor/GPU when possible.
+  */
     will-change:
         transform;
+
+    /*
+    Makes sure the image can receive
+    mouse movement events.
+  */
+    pointer-events: auto;
 
     cursor: default;
 }
@@ -65,6 +98,11 @@
             rgba(0, 0, 0, 0.08) 62%,
             rgba(0, 0, 0, 0.38) 100%);
 
+    /*
+    VERY IMPORTANT:
+    The overlay must never steal
+    the mouse events from the image.
+  */
     pointer-events: none;
 }
 
@@ -103,9 +141,14 @@
     text-shadow:
         0 4px 24px rgba(0, 0, 0, 0.18);
 
+    /*
+    Text should never interfere
+    with image mouse interaction.
+  */
     pointer-events: none;
 
-    will-change: transform;
+    will-change:
+        transform;
 }
 
 
@@ -136,6 +179,9 @@
 ===================================================== */
 
 @media (max-width: 900px) {
+    .pomona-section {
+        perspective: 1000px;
+    }
 
     .pomona-section-text {
         font-size: 58px;
@@ -156,15 +202,33 @@
 ===================================================== */
 
 @media (max-width: 600px) {
-
     .pomona-section {
         min-height: 100svh;
+
+        /*
+      Touch devices don't have a meaningful
+      mouse tilt, so keep the scene flat.
+    */
+        perspective: none;
     }
 
     .pomona-section-image {
-        inset: -5%;
+        /*
+      Do NOT use inset: -5%.
+      That would crop the artwork.
+    */
+        inset: 0;
 
-        background-position: center;
+        background-position:
+            center center;
+
+        background-size:
+            contain;
+
+        transform:
+            none !important;
+
+        will-change: auto;
     }
 
     .pomona-section-overlay {
@@ -181,6 +245,7 @@
 
     .pomona-section-text-left {
         top: 22%;
+
         left: 7%;
 
         transform: none;
@@ -188,7 +253,9 @@
 
     .pomona-section-text-right {
         top: auto;
+
         right: 7%;
+
         bottom: 18%;
 
         transform: none;

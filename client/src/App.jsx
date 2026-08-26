@@ -15,10 +15,9 @@ import Newsletter from "./pages/Newsletter";
 
 import VerifyEmail from "./pages/VerifyEmail";
 import ResetPassword from "./pages/ResetPassword";
+import NewsletterConfirmed from "./pages/NewsletterConfirmed";
 
 import SmoothScroll from "./components/layout/SmoothScroll";
-
-import NewsletterConfirmed from "./pages/NewsletterConfirmed";
 
 function AppContent() {
   const location = useLocation();
@@ -75,25 +74,21 @@ function AppContent() {
           element={<Newsletter />}
         />
 
-        {/* EMAIL VERIFICATION */}
+        <Route
+          path="/newsletter/confirmed"
+          element={<NewsletterConfirmed />}
+        />
 
         <Route
           path="/verify-email"
           element={<VerifyEmail />}
         />
 
-        {/* PASSWORD RESET */}
-
         <Route
           path="/reset-password"
           element={<ResetPassword />}
         />
       </Routes>
-
-       <Route
-  path="/newsletter/confirmed"
-  element={<NewsletterConfirmed />}
-/>
 
       {backgroundLocation && (
         <Routes>

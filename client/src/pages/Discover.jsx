@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import API_URL from "../services/api";
+
 import {
   FiSun,
   FiSunrise,
@@ -46,6 +47,35 @@ const seasons = [
   },
 ];
 
+// =====================================================
+// SKELETON
+// =====================================================
+
+function DiscoverSkeleton({ count = 12 }) {
+  return (
+    <div className="discover-skeleton-grid">
+      {Array.from({ length: count }).map(
+        (_, index) => (
+          <div
+            className="discover-skeleton-card"
+            key={`skeleton-${index}`}
+          >
+            <div className="discover-skeleton-image" />
+
+            <div className="discover-skeleton-content">
+              <div className="discover-skeleton-line discover-skeleton-line--title" />
+
+              <div className="discover-skeleton-line discover-skeleton-line--subtitle" />
+
+              <div className="discover-skeleton-line discover-skeleton-line--small" />
+            </div>
+          </div>
+        )
+      )}
+    </div>
+  );
+}
+
 function Discover() {
   const navigate = useNavigate();
 
@@ -61,14 +91,22 @@ function Discover() {
 
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [loading, setLoading] = useState(false);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [initialLoading, setInitialLoading] =
+    useState(true);
 
   // ===================================================
   // SEARCH DATA
   // ===================================================
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
+  const [searchQuery, setSearchQuery] =
+    useState("");
+
+  const [searchResults, setSearchResults] =
+    useState([]);
 
   // ===================================================
   // SEARCH ERROR
@@ -106,9 +144,9 @@ function Discover() {
     try {
       setLoading(true);
 
-     const response = await axios.get(
-  `${API_URL}/api/fruits?page=${page}&limit=15&seed=${randomSeed}`
-);
+      const response = await axios.get(
+        `${API_URL}/api/fruits?page=${page}&limit=15&seed=${randomSeed}`
+      );
 
       console.log(
         "PAGE:",
@@ -130,14 +168,18 @@ function Discover() {
         setHasMore(false);
       }
     } catch (error) {
-  console.error(
-    "Failed to fetch fruits:",
-    error
-  );
+      console.error(
+        "Failed to fetch fruits:",
+        error
+      );
 
-  setHasMore(false);
-} finally {
+      // Stop infinite scrolling if the
+      // request fails instead of endlessly
+      // increasing page numbers.
+      setHasMore(false);
+    } finally {
       setLoading(false);
+      setInitialLoading(false);
     }
   };
 
@@ -151,10 +193,6 @@ function Discover() {
     if (!query || creatingFruit) {
       return;
     }
-
-    // -----------------------------------------------
-    // CLEAR PREVIOUS ERROR
-    // -----------------------------------------------
 
     setSearchError("");
 
@@ -182,16 +220,15 @@ function Discover() {
       setCreatingFruit(true);
 
       const response = await axios.post(
-  `${API_URL}/api/fruits/find-or-create`,
-  {
-    name: query,
-  }
-);
+        `${API_URL}/api/fruits/find-or-create`,
+        {
+          name: query,
+        }
+      );
 
-      const fruit = response.data.fruit;
+      const fruit =
+        response.data.fruit;
 
-      // Keep search visible and replace
-      // the loading state with the new card.
       setSearchError("");
       setSearchResults([fruit]);
     } catch (error) {
@@ -240,6 +277,23 @@ function Discover() {
       }
 
       // ---------------------------------------------
+      // GEMINI TEMPORARY FAILURE
+      // ---------------------------------------------
+
+      if (
+        code ===
+        "GEMINI_TEMPORARY_UNAVAILABLE"
+      ) {
+        setSearchError(
+          "Pomona's fruit generator is temporarily busy. Please try again in a moment."
+        );
+
+        setSearchResults([]);
+
+        return;
+      }
+
+      // ---------------------------------------------
       // OTHER ERROR
       // ---------------------------------------------
 
@@ -274,7 +328,8 @@ function Discover() {
   // ===================================================
 
   useEffect(() => {
-    const query = searchQuery.trim();
+    const query =
+      searchQuery.trim();
 
     if (!query || creatingFruit) {
       if (!query) {
@@ -286,30 +341,34 @@ function Discover() {
 
     let cancelled = false;
 
-    const timeout = setTimeout(async () => {
-      try {
-        const response = await axios.get(
-  `${API_URL}/api/fruits/search?q=${encodeURIComponent(
-    query
-  )}`
-);
+    const timeout = setTimeout(
+      async () => {
+        try {
+          const response =
+            await axios.get(
+              `${API_URL}/api/fruits/search?q=${encodeURIComponent(
+                query
+              )}`
+            );
 
-        if (!cancelled) {
-          setSearchResults(
-            response.data
-          );
-        }
-      } catch (error) {
-        if (!cancelled) {
-          console.error(
-            "Discover search failed:",
-            error
-          );
+          if (!cancelled) {
+            setSearchResults(
+              response.data
+            );
+          }
+        } catch (error) {
+          if (!cancelled) {
+            console.error(
+              "Discover search failed:",
+              error
+            );
 
-          setSearchResults([]);
+            setSearchResults([]);
+          }
         }
-      }
-    }, 300);
+      },
+      300
+    );
 
     return () => {
       cancelled = true;
@@ -379,7 +438,9 @@ function Discover() {
           }
         },
         {
-          threshold: 1,
+          threshold: 0,
+          rootMargin:
+            "0px 0px 700px 0px",
         }
       );
 
@@ -432,8 +493,7 @@ function Discover() {
               (season) =>
                 season
                   .toLowerCase() ===
-                selectedSeason
-                  .toLowerCase()
+                selectedSeason.toLowerCase()
             );
           }
         );
@@ -526,9 +586,7 @@ function Discover() {
           <SearchBar
             value={searchQuery}
             onChange={(value) => {
-              setSearchQuery(
-                value
-              );
+              setSearchQuery(value);
 
               if (searchError) {
                 setSearchError("");
@@ -544,25 +602,31 @@ function Discover() {
           ========================================= */}
 
           {searchQuery.trim() && (
-  <motion.p
-    className="fruit-search-hint"
-    initial={{
-      opacity: 0,
-      y: -4,
-    }}
-    animate={{
-      opacity: 1,
-      y: 0,
-    }}
-    transition={{
-      duration: 0.25,
-      ease: [0.22, 1, 0.36, 1],
-    }}
-  >
-    Please search fruits only — random searches
-    cost Pomona a little AI juice. :)
-  </motion.p>
-)}
+            <motion.p
+              className="fruit-search-hint"
+              initial={{
+                opacity: 0,
+                y: -4,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              transition={{
+                duration: 0.25,
+                ease: [
+                  0.22,
+                  1,
+                  0.36,
+                  1,
+                ],
+              }}
+            >
+              Please search fruits only —
+              random searches cost Pomona
+              a little AI juice. :)
+            </motion.p>
+          )}
 
           {/* =========================================
               SEARCH ERROR
@@ -599,7 +663,15 @@ function Discover() {
         ========================================= */}
 
         <section className="discover-content">
-          {creatingFruit ? (
+          {/* =======================================
+              INITIAL LOAD
+          ======================================= */}
+
+          {initialLoading ? (
+            <DiscoverSkeleton
+              count={12}
+            />
+          ) : creatingFruit ? (
             <FruitGenerationLoading />
           ) : searchError ? (
             <div className="search-empty search-error-state">
@@ -627,8 +699,7 @@ function Discover() {
           ) : (
             <motion.div
               key={
-                searchResults.length >
-                0
+                searchResults.length > 0
                   ? searchResults[0]?._id
                   : `grid-${selectedSeason}`
               }
@@ -652,31 +723,39 @@ function Discover() {
             >
               {filteredFruits.length >
               0 ? (
-                <MasonryGrid
-                  fruits={
-                    filteredFruits
-                  }
-                />
+                <>
+                  <MasonryGrid
+                    fruits={filteredFruits}
+                  />
+
+                  {/* =================================
+                      LOAD MORE SKELETON
+                  ================================= */}
+
+                  {loading &&
+                        page > 1 &&
+                    !searchQuery.trim() && (
+                  <DiscoverSkeleton count={8} />
+                    )}
+                </>
               ) : (
                 <div className="search-empty">
                   <p>
-                    No fruits found
-                    for{" "}
+                    No fruits found for{" "}
                     {selectedSeason}.
                   </p>
 
                   <span>
-                    Try another
-                    season.
+                    Try another season.
                   </span>
                 </div>
               )}
             </motion.div>
           )}
 
-          {/* =======================================
+          {/* =========================================
               INFINITE SCROLL
-          ======================================= */}
+          ========================================= */}
 
           {!searchQuery.trim() &&
             !creatingFruit &&
@@ -684,9 +763,7 @@ function Discover() {
             hasMore && (
               <div
                 ref={loader}
-                style={{
-                  height: "40px",
-                }}
+                className="discover-scroll-loader"
               />
             )}
         </section>

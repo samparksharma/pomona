@@ -290,6 +290,28 @@
     cursor: not-allowed;
 }
 
+.auth-forgot {
+    align-self: flex-end;
+    margin: 12px 0 4px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: rgba(231, 226, 226, 0.5);
+    font-size: 11px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.auth-forgot:hover {
+    color: #f8f5f5;
+}
+
+.auth-forgot:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
 .auth-password-wrapper .auth-input {
     margin-bottom: 0;
 }
+

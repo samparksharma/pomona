@@ -10,6 +10,7 @@ import axios from "axios";
 
 import { useAuth } from "./AuthContext";
 import API_URL from "../../services/api";
+
 import {
   FiEye,
   FiEyeOff,
@@ -17,10 +18,28 @@ import {
   FiCheck,
 } from "react-icons/fi";
 
-
-
 const WATCHER_KEY =
   "pomonaVerificationWatcher";
+
+// =====================================================
+// PASSWORD VALIDATION
+// =====================================================
+
+const getPasswordError = (password) => {
+  if (password.length < 8) {
+    return "Password must be at least 8 characters.";
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    return "Don't be shy add a capital letter.";
+  }
+
+  if (!/[^A-Za-z0-9]/.test(password)) {
+    return "You so special,why don't use a special character :)";
+  }
+
+  return "";
+};
 
 function AuthModal({
   onClose,
@@ -67,6 +86,12 @@ function AuthModal({
 
   const isLogin =
     mode === "login";
+
+  // Live password validation for signup.
+  const passwordError =
+    !isLogin && password
+      ? getPasswordError(password)
+      : "";
 
   // =========================================
   // CLEANUP POLLING
@@ -129,8 +154,7 @@ function AuthModal({
                 `${API_URL}/api/auth/verification-status`,
                 {
                   params: {
-                    token:
-                      currentToken,
+                    token: currentToken,
                   },
                   withCredentials: true,
                 }
@@ -144,8 +168,7 @@ function AuthModal({
                 pollingRef.current
               );
 
-              pollingRef.current =
-                null;
+              pollingRef.current = null;
 
               sessionStorage.removeItem(
                 WATCHER_KEY
@@ -178,9 +201,9 @@ function AuthModal({
 
             // Keep waiting while status is "pending".
           } catch (error) {
-            // ---------------------------------
+            // =================================
             // WATCHER EXPIRED
-            // ---------------------------------
+            // =================================
 
             if (
               error.response?.status ===
@@ -190,8 +213,7 @@ function AuthModal({
                 pollingRef.current
               );
 
-              pollingRef.current =
-                null;
+              pollingRef.current = null;
 
               sessionStorage.removeItem(
                 WATCHER_KEY
@@ -211,11 +233,10 @@ function AuthModal({
             }
 
             /*
-             * Important:
-             * 429 / 500 / network errors should
-             * NOT kill the watcher.
+             * 429 / 500 / network errors
+             * do not kill the watcher.
              *
-             * We'll simply try again on the
+             * We simply try again on the
              * next interval.
              */
           }
@@ -249,8 +270,7 @@ function AuthModal({
           await axios.post(
             `${API_URL}/api/auth/resend-verification`,
             {
-              email:
-                email.trim(),
+              email: email.trim(),
             }
           );
 
@@ -317,8 +337,7 @@ function AuthModal({
         await axios.post(
           `${API_URL}/api/auth/forgot-password`,
           {
-            email:
-              cleanEmail,
+            email: cleanEmail,
           }
         );
 
@@ -354,6 +373,24 @@ function AuthModal({
         return;
       }
 
+      // =======================================
+      // SIGNUP PASSWORD VALIDATION
+      // =======================================
+
+      if (!isLogin) {
+        const passwordError =
+          getPasswordError(password);
+
+        if (passwordError) {
+          setStatus({
+            type: "error",
+            message: passwordError,
+          });
+
+          return;
+        }
+      }
+
       setLoading(true);
 
       setStatus({
@@ -368,15 +405,12 @@ function AuthModal({
 
         const payload = isLogin
           ? {
-              email:
-                email.trim(),
+              email: email.trim(),
               password,
             }
           : {
-              name:
-                name.trim(),
-              email:
-                email.trim(),
+              name: name.trim(),
+              email: email.trim(),
               password,
             };
 
@@ -461,13 +495,8 @@ function AuthModal({
       WATCHER_KEY
     );
 
-    setWaitingForVerification(
-      false
-    );
-
-    setVerificationComplete(
-      false
-    );
+    setWaitingForVerification(false);
+    setVerificationComplete(false);
 
     setMode(
       isLogin
@@ -569,8 +598,7 @@ function AuthModal({
               flexDirection: "column",
               alignItems: "center",
               gap: "14px",
-              padding:
-                "12px 0 4px",
+              padding: "12px 0 4px",
               textAlign: "center",
             }}
           >
@@ -605,12 +633,10 @@ function AuthModal({
                 maxWidth: 300,
               }}
             >
-              Open the email on
-              any device and
-              click the verify
-              button. You can
-              leave this Pomona
-              window open.
+              Open the email on any
+              device and click the verify
+              button. You can leave this
+              Pomona window open.
             </span>
 
             {status.message && (
@@ -643,9 +669,7 @@ function AuthModal({
             ================================= */}
 
             <form
-              onSubmit={
-                handleSubmit
-              }
+              onSubmit={handleSubmit}
               className="auth-form"
             >
               {!isLogin && (
@@ -722,16 +746,33 @@ function AuthModal({
                   }
                 >
                   {showPassword ? (
-                    <FiEyeOff
-                      size={17}
-                    />
+                    <FiEyeOff size={17} />
                   ) : (
-                    <FiEye
-                      size={17}
-                    />
+                    <FiEye size={17} />
                   )}
                 </button>
               </div>
+
+              {/* =================================
+                  LIVE SIGNUP PASSWORD HINT
+              ================================= */}
+
+              {!isLogin && password && (
+                <p
+                  style={{
+                    margin:
+                      "8px 2px 2px",
+                    fontSize: "11px",
+                    lineHeight: 1.5,
+                    color: passwordError
+                      ? "rgba(187, 48, 147, 0.85)"
+                      : "#4f8a5b",
+                  }}
+                >
+                  {passwordError ||
+                    "Perfect! just like you >.< "}
+                </p>
+              )}
 
               {isLogin && (
                 <button
@@ -773,9 +814,7 @@ function AuthModal({
 
             <button
               className="auth-switch"
-              onClick={
-                switchMode
-              }
+              onClick={switchMode}
               type="button"
               disabled={loading}
             >

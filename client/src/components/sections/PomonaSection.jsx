@@ -60,22 +60,26 @@ function PomonaSection() {
       // =================================================
       // IMAGE SCROLL PARALLAX
       // =================================================
+      //
+      // The image stays relatively contained so the full
+      // artwork remains visible while still moving.
+      //
 
       gsap.fromTo(
         image,
         {
-          yPercent: -4,
-          scale: 1.10,
+          yPercent: -8,
+          scale: 1.04,
         },
         {
-          yPercent: 4,
-          scale: 1.14,
+          yPercent: 8,
+          scale: 1.07,
           ease: "none",
           scrollTrigger: {
             trigger: section,
             start: "top bottom",
             end: "bottom top",
-            scrub: 1,
+            scrub: 0.65,
           },
         }
       );
@@ -84,15 +88,23 @@ function PomonaSection() {
       // MOUSE 3D TILT
       // =================================================
 
-      const xTo = gsap.quickTo(image, "rotateY", {
-        duration: 0.45,
-        ease: "power3.out",
-      });
+      const xTo = gsap.quickTo(
+        image,
+        "rotationY",
+        {
+          duration: 0.45,
+          ease: "power3.out",
+        }
+      );
 
-      const yTo = gsap.quickTo(image, "rotateX", {
-        duration: 0.45,
-        ease: "power3.out",
-      });
+      const yTo = gsap.quickTo(
+        image,
+        "rotationX",
+        {
+          duration: 0.45,
+          ease: "power3.out",
+        }
+      );
 
       const handleMouseMove = (event) => {
         const rect =
@@ -106,11 +118,13 @@ function PomonaSection() {
           (event.clientY - rect.top) /
           rect.height;
 
+        // Keep the tilt noticeable without
+        // turning the image into a card.
         const rotateY =
-          (x - 0.5) * 5;
+          (x - 0.5) * 8;
 
         const rotateX =
-          (0.5 - y) * 4;
+          (0.5 - y) * 6;
 
         xTo(rotateY);
         yTo(rotateX);
@@ -197,7 +211,12 @@ function PomonaSection() {
         }}
         transition={{
           duration: 0.85,
-          ease: [0.22, 1, 0.36, 1],
+          ease: [
+            0.22,
+            1,
+            0.36,
+            1,
+          ],
         }}
       >
         Pomona, goddess
@@ -230,7 +249,12 @@ function PomonaSection() {
         transition={{
           delay: 0.12,
           duration: 0.85,
-          ease: [0.22, 1, 0.36, 1],
+          ease: [
+            0.22,
+            1,
+            0.36,
+            1,
+          ],
         }}
       >
         offers you nature's

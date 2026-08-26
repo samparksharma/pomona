@@ -1,13 +1,5 @@
-import {
-  useState,
-} from "react";
-
-import {
-  Link,
-  useNavigate,
-  useSearchParams,
-} from "react-router-dom";
-
+import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 
 import {
@@ -15,17 +7,34 @@ import {
   FiEyeOff,
   FiLock,
 } from "react-icons/fi";
+
 import API_URL from "../services/api";
 
 import "../components/auth/AuthModal.css";
 
-function ResetPassword() {
-  const [
-    searchParams,
-  ] = useSearchParams();
+// =====================================================
+// PASSWORD VALIDATION
+// =====================================================
 
-  const navigate =
-    useNavigate();
+const getPasswordError = (password) => {
+  if (password.length < 8) {
+    return "Password must be at least 8 characters.";
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    return "Password must contain at least one uppercase letter.";
+  }
+
+  if (!/[^A-Za-z0-9]/.test(password)) {
+    return "Password must contain at least one special character.";
+  }
+
+  return "";
+};
+
+function ResetPassword() {
+  const [searchParams] =
+    useSearchParams();
 
   const token =
     searchParams.get("token");
@@ -63,6 +72,19 @@ function ResetPassword() {
   const [success, setSuccess] =
     useState(false);
 
+  // =====================================================
+  // LIVE PASSWORD ERROR
+  // =====================================================
+
+  const passwordError =
+    password
+      ? getPasswordError(password)
+      : "";
+
+  // =====================================================
+  // SUBMIT
+  // =====================================================
+
   const handleSubmit = async (
     event
   ) => {
@@ -77,23 +99,40 @@ function ResetPassword() {
       message: "",
     });
 
+    // =========================================
+    // VALIDATE RESET LINK
+    // =========================================
+
     if (!token || !email) {
       setStatus({
         type: "error",
         message:
           "This password reset link is invalid.",
       });
+
       return;
     }
 
-    if (password.length < 8) {
+    // =========================================
+    // VALIDATE PASSWORD
+    // =========================================
+
+    const passwordValidationError =
+      getPasswordError(password);
+
+    if (passwordValidationError) {
       setStatus({
         type: "error",
         message:
-          "Password must be at least 8 characters.",
+          passwordValidationError,
       });
+
       return;
     }
+
+    // =========================================
+    // CONFIRM PASSWORD
+    // =========================================
 
     if (
       password !== confirmPassword
@@ -103,6 +142,7 @@ function ResetPassword() {
         message:
           "Passwords do not match.",
       });
+
       return;
     }
 
@@ -125,19 +165,24 @@ function ResetPassword() {
         type: "success",
         message:
           response.data.message ||
-          "Your password has been reset successfully.",
+          "Your password has been changed successfully.",
       });
     } catch (error) {
       setStatus({
         type: "error",
         message:
-          error.response?.data?.message ||
+          error.response?.data
+            ?.message ||
           "This reset link is invalid or expired.",
       });
     } finally {
       setLoading(false);
     }
   };
+
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
     <main
@@ -162,6 +207,10 @@ function ResetPassword() {
             "0 25px 70px rgba(0,0,0,0.16)",
         }}
       >
+        {/* =========================================
+            ICON
+        ========================================= */}
+
         <div
           style={{
             display: "flex",
@@ -177,6 +226,10 @@ function ResetPassword() {
         >
           <FiLock size={19} />
         </div>
+
+        {/* =========================================
+            HEADING
+        ========================================= */}
 
         <div
           style={{
@@ -202,13 +255,14 @@ function ResetPassword() {
               margin: 0,
               fontFamily:
                 '"Instrument Serif", serif',
-              fontSize: "54px",
+              fontSize:
+                "clamp(46px, 8vw, 54px)",
               fontWeight: 400,
               lineHeight: 0.95,
             }}
           >
             {success
-              ? "You're back in."
+              ? "Password changed."
               : "Reset your password."}
           </h1>
 
@@ -224,10 +278,14 @@ function ResetPassword() {
             }}
           >
             {success
-              ? "Your password has been changed and your previous sessions have been revoked."
+              ? "Your password has been changed successfully. You can now close this tab."
               : "Choose a new password for your Pomona account."}
           </p>
         </div>
+
+        {/* =========================================
+            FORM
+        ========================================= */}
 
         {!success ? (
           <form
@@ -238,6 +296,10 @@ function ResetPassword() {
               gap: "12px",
             }}
           >
+            {/* =====================================
+                NEW PASSWORD
+            ===================================== */}
+
             <div
               style={{
                 position: "relative",
@@ -252,12 +314,20 @@ function ResetPassword() {
                 }
                 placeholder="New password"
                 value={password}
-                onChange={(event) =>
+                onChange={(event) => {
                   setPassword(
                     event.target.value
-                  )
-                }
-                minLength={8}
+                  );
+
+                  // Clear old submit error
+                  // while user is fixing password.
+                  if (status.type === "error") {
+                    setStatus({
+                      type: "",
+                      message: "",
+                    });
+                  }
+                }}
                 autoComplete="new-password"
                 disabled={loading}
                 required
@@ -272,7 +342,8 @@ function ResetPassword() {
                 type="button"
                 onClick={() =>
                   setShowPassword(
-                    (prev) => !prev
+                    (previous) =>
+                      !previous
                   )
                 }
                 disabled={loading}
@@ -292,7 +363,10 @@ function ResetPassword() {
                   background:
                     "transparent",
                   color: "#888",
-                  cursor: "pointer",
+                  cursor:
+                    loading
+                      ? "default"
+                      : "pointer",
                 }}
               >
                 {showPassword ? (
@@ -302,6 +376,32 @@ function ResetPassword() {
                 )}
               </button>
             </div>
+
+            {/* =====================================
+                PASSWORD REQUIREMENT MESSAGE
+            ===================================== */}
+
+            {password && (
+              <p
+                style={{
+                  margin:
+                    "12px 4px 2px",
+                  fontSize: "11px",
+                  lineHeight: 1.5,
+                  color:
+                    passwordError
+                      ? "rgba(249, 13, 13, 0.42)"
+                      : "#7aaa7f",
+                }}
+              >
+                {passwordError ||
+                  "Password meets all requirements."}
+              </p>
+            )}
+
+            {/* =====================================
+                CONFIRM PASSWORD
+            ===================================== */}
 
             <div
               style={{
@@ -317,11 +417,18 @@ function ResetPassword() {
                 }
                 placeholder="Confirm new password"
                 value={confirmPassword}
-                onChange={(event) =>
+                onChange={(event) => {
                   setConfirmPassword(
                     event.target.value
-                  )
-                }
+                  );
+
+                  if (status.type === "error") {
+                    setStatus({
+                      type: "",
+                      message: "",
+                    });
+                  }
+                }}
                 autoComplete="new-password"
                 disabled={loading}
                 required
@@ -336,7 +443,8 @@ function ResetPassword() {
                 type="button"
                 onClick={() =>
                   setShowConfirmPassword(
-                    (prev) => !prev
+                    (previous) =>
+                      !previous
                   )
                 }
                 disabled={loading}
@@ -356,7 +464,10 @@ function ResetPassword() {
                   background:
                     "transparent",
                   color: "#888",
-                  cursor: "pointer",
+                  cursor:
+                    loading
+                      ? "default"
+                      : "pointer",
                 }}
               >
                 {showConfirmPassword ? (
@@ -366,6 +477,10 @@ function ResetPassword() {
                 )}
               </button>
             </div>
+
+            {/* =====================================
+                STATUS
+            ===================================== */}
 
             {status.message && (
               <p
@@ -381,6 +496,10 @@ function ResetPassword() {
               </p>
             )}
 
+            {/* =====================================
+                SUBMIT
+            ===================================== */}
+
             <button
               className="auth-submit"
               type="submit"
@@ -395,11 +514,13 @@ function ResetPassword() {
             </button>
           </form>
         ) : (
+          /* =======================================
+             SUCCESS STATE
+          ======================================= */
+
           <div
             style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "12px",
+              textAlign: "center",
             }}
           >
             <p
@@ -408,40 +529,25 @@ function ResetPassword() {
                 margin: 0,
               }}
               role="status"
+              aria-live="polite"
             >
               {status.message}
             </p>
 
-            <button
-              className="auth-submit"
-              type="button"
-              onClick={() =>
-                navigate("/")
-              }
+            <p
+              style={{
+                marginTop: "14px",
+                marginBottom: 0,
+                fontSize: "12px",
+                lineHeight: 1.6,
+                color:
+                  "rgba(250,250,248,0.42)",
+              }}
             >
-              Continue to Login
-            </button>
+              You can now close this tab.
+            </p>
           </div>
         )}
-
-        <div
-          style={{
-            marginTop: "24px",
-            textAlign: "center",
-          }}
-        >
-          <Link
-            to="/"
-            style={{
-              color:
-                "rgba(250,250,248,0.5)",
-              textDecoration: "none",
-              fontSize: "12px",
-            }}
-          >
-            Back to Pomona
-          </Link>
-        </div>
       </div>
     </main>
   );

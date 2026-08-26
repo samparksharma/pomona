@@ -685,7 +685,7 @@ const findOrCreateFruit = async (req, res) => {
       return res.status(500).json({
         code: "GEMINI_ERROR",
         message:
-          "Pomona is experiencing . Please try again later.",
+          "Pomona is experiencing high demand right now. Please try again later.",
       });
     }
 
