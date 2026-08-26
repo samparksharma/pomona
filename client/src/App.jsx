@@ -18,6 +18,8 @@ import ResetPassword from "./pages/ResetPassword";
 
 import SmoothScroll from "./components/layout/SmoothScroll";
 
+import NewsletterConfirmed from "./pages/NewsletterConfirmed";
+
 function AppContent() {
   const location = useLocation();
 
@@ -87,6 +89,11 @@ function AppContent() {
           element={<ResetPassword />}
         />
       </Routes>
+
+       <Route
+  path="/newsletter/confirmed"
+  element={<NewsletterConfirmed />}
+/>
 
       {backgroundLocation && (
         <Routes>

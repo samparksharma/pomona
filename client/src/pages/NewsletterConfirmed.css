@@ -1,0 +1,39 @@
+.newsletter-confirmed {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: #fafaf8;
+}
+
+.newsletter-confirmed-card {
+    width: min(620px, 100%);
+    text-align: center;
+    padding: 80px 40px;
+}
+
+.newsletter-confirmed-eyebrow {
+    display: block;
+    margin-bottom: 18px;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(17, 17, 17, 0.45);
+}
+
+.newsletter-confirmed-card h1 {
+    margin: 0;
+    font-family: "Instrument Serif", serif;
+    font-size: clamp(52px, 7vw, 90px);
+    font-weight: 400;
+    line-height: 0.95;
+}
+
+.newsletter-confirmed-card p {
+    margin: 24px auto 0;
+    max-width: 420px;
+    font-size: 16px;
+    line-height: 1.7;
+    color: rgba(17, 17, 17, 0.58);
+}
