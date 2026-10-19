@@ -1,5 +1,5 @@
 import "./Discover.css";
-import discoverBg from "../assets/images/discover-bg.png";
+import discoverBg from "../assets/images/discover-bg.webp";
 import { motion } from "framer-motion";
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";

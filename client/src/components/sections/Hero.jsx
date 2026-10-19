@@ -4,7 +4,7 @@ import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Link } from "react-router-dom";
-import heroImage from "../../assets/images/pomona-hero.png";
+import heroImage from "../../assets/images/pomona-hero.webp";
 
 gsap.registerPlugin(ScrollTrigger);
 

@@ -3,7 +3,7 @@ import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import fruitBowl from "../../assets/images/fruit-bowl.png";
+import fruitBowl from "../../assets/images/fruit-bowl.webp";
 
 import orange from "../../assets/images/showcase/orange.png";
 import strawberry from "../../assets/images/showcase/strawberry.png";
