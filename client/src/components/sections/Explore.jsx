@@ -4,8 +4,8 @@ import { Link } from "react-router-dom";
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 
-import skullBase from "../../assets/images/explore/skull-base.png";
-import skullBotanical from "../../assets/images/explore/skull-botanical.png";
+import skullBase from "../../assets/images/explore/skull-base.webp";
+import skullBotanical from "../../assets/images/explore/skull-botanical.webp";
 
 function Explore() {
   const skullStageRef = useRef(null);
